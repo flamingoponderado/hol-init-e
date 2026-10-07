@@ -437,3 +437,27 @@ including every copy-loop iteration, before lifting to restricted RISC-V.
 ```sh
 python3 tools/build.py --hol /path/to/tested-HOL initBootstrapInstalledTheory.uo
 ```
+
+## Bootstrap assembler steps and startup execution
+
+`initBootstrapStepTheory` passed. Its ROM invariant fixes the program domain
+and preserves initial memory below `bootDataRam`. The fetch-preservation theorem
+transfers the checked instruction encodings to any state satisfying that
+invariant. `bootstrap_asm_step` then establishes the upstream `asm_step` relation
+for a bootstrap instruction, given its declared PC, RISC-V configuration fields,
+and a non-failing `bootAfter` result.
+
+`initBootstrapPrefixStepsTheory` also passed. It defines `bootSteps` as a finite
+sequence of those actual assembler steps and proves it for the three startup
+instructions from the initial PC. The premise requires the ROM invariant,
+link register index 1, little endian state, alignment 2, and no initial failure.
+The instruction memberships and encoded lengths are checked in HOL. All
+exported results are closed and tag-checked.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initBootstrapPrefixStepsTheory.uo
+```
+
+The copy-loop iterations and suffix still need their step-sequence proofs.
+The restricted RISC-V simulation and full challenge Certificate remain
+outstanding; these startup results do not imply a complete certificate.

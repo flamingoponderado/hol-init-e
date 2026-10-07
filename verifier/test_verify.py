@@ -3,6 +3,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import shutil
 import unittest
 from unittest.mock import patch
 import verify
@@ -139,7 +140,7 @@ class CommandTests(unittest.TestCase):
 
     def test_missing_heap_prepared_without_rereading_candidate(self):
         first = True
-        def replay(frozen, *args):
+        def replay(frozen, *args, **kwargs):
             nonlocal first
             if first:
                 first = False
@@ -154,5 +155,55 @@ class CommandTests(unittest.TestCase):
         with patch.object(verify, 'check_trusted'), patch.object(verify, 'replay_frozen', side_effect=verify.Rejected('wrong statement')), patch('subprocess.run') as prepare, patch('sys.stdout', new_callable=io.StringIO):
             self.assertEqual(verify.main(['--local', str(self.candidate)]), 1)
             prepare.assert_not_called()
+
+class CompatibilityTests(unittest.TestCase):
+    setUp = BoundaryTests.setUp
+
+    def test_explicit_trusted_root_is_used_without_changing_default(self):
+        original = verify.ROOT
+        selected = self.candidate/'operator-root'
+        with patch.object(verify, 'check_trusted') as check, patch.object(verify, 'replay_frozen') as replay, patch('sys.stdout', new_callable=io.StringIO):
+            self.assertEqual(verify.main(['--local', str(self.candidate), '--trusted', str(selected)]), 0)
+        check.assert_called_once_with(selected.resolve())
+        self.assertEqual(replay.call_args.kwargs['trusted'], selected.resolve())
+        self.assertEqual(verify.ROOT, original)
+
+    def test_structural_work_retains_frozen_literals_and_is_private(self):
+        work = self.candidate.parent/(self.candidate.name+'-work')
+        self.addCleanup(lambda: shutil.rmtree(work, ignore_errors=True))
+        with patch.object(verify, 'check_trusted'), patch('sys.stdout', new_callable=io.StringIO):
+            self.assertEqual(verify.main(['--local', str(self.candidate), '--structural-only', '--work', str(work)]), 0)
+        self.assertEqual(work.stat().st_mode & 0o777, 0o700)
+        self.assertEqual((work/'input/rom.bin').read_bytes(), bytes([255,0,1]))
+        self.assertIn('255w;0w;1w', (work/'input/submissionLiteralsScript.sml').read_text())
+        with patch.object(verify, 'check_trusted'), patch('sys.stdout', new_callable=io.StringIO):
+            self.assertEqual(verify.main(['--local', str(self.candidate), '--structural-only', '--work', str(work)]), 1)
+        self.assertEqual((work/'input/rom.bin').read_bytes(), bytes([255,0,1]))
+
+    def test_missing_heap_retry_keeps_work_and_hide_options(self):
+        work = self.candidate.parent/(self.candidate.name+'-replay')
+        hidden = self.candidate
+        captured = []
+        def replay(frozen, *args, **kwargs):
+            captured.append((frozen, kwargs))
+            if len(captured) == 1:
+                (self.candidate/'rom.bin').write_bytes(b'replacement')
+                raise verify.ReplayUnavailable('missing')
+        with patch.object(verify, 'check_trusted'), patch.object(verify, 'replay_frozen', side_effect=replay), patch('subprocess.run'), patch('sys.stdout', new_callable=io.StringIO):
+            self.assertEqual(verify.main(['--local', str(self.candidate), '--work', str(work), '--hide', str(hidden)]), 0)
+        self.assertIs(captured[0][0], captured[1][0])
+        self.assertEqual(captured[1][0].rom, bytes([255,0,1]))
+        self.assertEqual(captured[1][1]['work'], work)
+        self.assertEqual(captured[1][1]['hide'], [hidden])
+
+    def test_hide_cannot_mask_replay_inputs(self):
+        with patch.object(verify.shutil, 'which', return_value='/usr/bin/bwrap'):
+            with self.assertRaisesRegex(verify.Rejected, 'required verifier path'):
+                verify.hidden_replay_command(['/bin/true'], [self.candidate], self.candidate/'work', [])
+
+    def test_hide_missing_sandbox_is_rejected(self):
+        with patch.object(verify.shutil, 'which', return_value=None):
+            with self.assertRaisesRegex(verify.Rejected, 'requires bubblewrap'):
+                verify.hidden_replay_command(['/bin/true'], [self.candidate], self.candidate.parent/'work', [])
 
 if __name__ == '__main__': unittest.main()

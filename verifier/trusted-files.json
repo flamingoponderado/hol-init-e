@@ -21,5 +21,5 @@
   "verifier/check.sml": "d109bdefcc3f876886351f1b99161eb9a0f939059590c810fca67eceef7a8bc2",
   "verifier/prepareHeap.sml": "e8bd445c79d4ab4143c87413abe85527ee25d96e77138ea2b01380c1c8daa7fb",
   "verifier/strictReplayLib.sml": "95bade6451c7f5d25e29d92178c7f0b7750aba1a6873d1f30cceca15dcee3a8d",
-  "verifier/verify.py": "2f73df281cf486d0b7125b12384f8d59de88922d695f9bb36bb1d4b83259812e"
+  "verifier/verify.py": "5dd5498cebaf39c05cebf7f6b939e47a6924d1dc232718e80387f08ea365b306"
 }

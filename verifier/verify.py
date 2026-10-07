@@ -5,6 +5,7 @@ to require the exact fixed Certificate, without executing participant ML.
 """
 from __future__ import annotations
 import argparse
+from contextlib import contextmanager
 from dataclasses import dataclass
 import hashlib
 import json
@@ -13,6 +14,7 @@ from pathlib import Path
 import stat
 import subprocess
 import resource
+import shutil
 import tempfile
 import sys
 
@@ -125,10 +127,11 @@ def prepare_snapshot(frozen, destination):
         frozen.write_literals(stream)
 
 
-def check_trusted():
-    manifest = json.loads((ROOT/'verifier/trusted-files.json').read_text())
+def check_trusted(root=None):
+    root = ROOT if root is None else Path(root)
+    manifest = json.loads((root/'verifier/trusted-files.json').read_text())
     for relative, expected in manifest.items():
-        path = ROOT/relative
+        path = root/relative
         if path.is_symlink() or not path.is_file():
             raise Rejected('missing or redirected trusted file: '+relative)
         if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
@@ -136,15 +139,15 @@ def check_trusted():
     for directory in ['challenge', 'source']:
         expected_files = {name for name in manifest if name.startswith(directory+'/')}
         observed = set()
-        for path in (ROOT/directory).rglob('*'):
+        for path in (root/directory).rglob('*'):
             if path.is_symlink(): raise Rejected('redirected trusted path: '+str(path))
-            if path.is_file(): observed.add(path.relative_to(ROOT).as_posix())
+            if path.is_file(): observed.add(path.relative_to(root).as_posix())
         if observed != expected_files:
             raise Rejected('unexpected trusted file set in '+directory)
-    pin = json.loads((ROOT/'provenance.json').read_text())['cakeml']
-    actual = subprocess.check_output(['git', '-C', str(ROOT/'cakeml'), 'rev-parse', 'HEAD'], text=True).strip()
+    pin = json.loads((root/'provenance.json').read_text())['cakeml']
+    actual = subprocess.check_output(['git', '-C', str(root/'cakeml'), 'rev-parse', 'HEAD'], text=True).strip()
     if actual != pin: raise Rejected('CakeML submodule pin differs')
-    dirty = subprocess.check_output(['git', '-C', str(ROOT/'cakeml'), 'status',
+    dirty = subprocess.check_output(['git', '-C', str(root/'cakeml'), 'status',
                                     '--porcelain', '--untracked-files=all'], text=True)
     if dirty: raise Rejected('CakeML submodule has local changes')
 
@@ -153,17 +156,58 @@ def file_digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def replay_frozen(frozen, timeout=600, memory_gib=32):
+
+@contextmanager
+def replay_workspace(build, requested=None):
+    if requested is None:
+        with tempfile.TemporaryDirectory(prefix='replay-', dir=build) as temporary:
+            yield Path(temporary)
+    else:
+        work = Path(requested).absolute()
+        work.mkdir(mode=0o700, parents=True, exist_ok=False)
+        yield work.resolve()
+
+
+def hidden_replay_command(command, hidden, work, protected):
+    """Mask operator-selected paths in the replay process; never ignore --hide."""
+    if not hidden:
+        return command
+    bwrap = shutil.which('bwrap')
+    if bwrap is None:
+        raise Rejected('--hide requires bubblewrap (bwrap)')
+    masks = sorted({Path(path).resolve(strict=True) for path in hidden},
+                   key=lambda path: len(path.parts))
+    required = [Path(path).resolve() for path in [work, *protected]]
+    selected = []
+    for path in masks:
+        if any(path == needed or path in needed.parents for needed in required):
+            raise Rejected('--hide overlaps a required verifier path: '+str(path))
+        if not path.is_dir() and not path.is_file():
+            raise Rejected('--hide requires a regular file or directory: '+str(path))
+        if any(parent == path or parent in path.parents for parent in selected):
+            continue
+        selected.append(path)
+    isolated = [bwrap, '--die-with-parent', '--new-session', '--unshare-net',
+                '--unshare-pid', '--ro-bind', '/', '/', '--proc', '/proc',
+                '--dev', '/dev', '--bind', str(work), str(work)]
+    for path in selected:
+        isolated += ['--tmpfs', str(path)] if path.is_dir() else [
+            '--ro-bind', '/dev/null', str(path)]
+    return isolated + ['--', *command]
+
+
+def replay_frozen(frozen, timeout=600, memory_gib=32, *, trusted=None, work=None, hide=()):
     """Replay only frozen data in a fresh process with the fixed checker."""
-    build = ROOT/'.build'
+    root = ROOT if trusted is None else Path(trusted).resolve()
+    build = root/'.build'
     heap, metadata = build/'verifier.heap', build/'verifier.json'
     if not heap.is_file() or not metadata.is_file():
         raise ReplayUnavailable('Run tools/prepare_verifier.py with the pinned HOL checkout first.')
     info = json.loads(metadata.read_text())
     if set(info) != {'hol','hol_revision','heap_sha256','manifest_sha256'}:
         raise Rejected('invalid verifier heap metadata')
-    pin = json.loads((ROOT/'provenance.json').read_text())['tested_hol']
-    if info['hol_revision'] != pin or info['manifest_sha256'] != file_digest(ROOT/'verifier/trusted-files.json'):
+    pin = json.loads((root/'provenance.json').read_text())['tested_hol']
+    if info['hol_revision'] != pin or info['manifest_sha256'] != file_digest(root/'verifier/trusted-files.json'):
         raise ReplayUnavailable('The verifier heap is stale; rebuild it against the fixed manifest.')
     if info['heap_sha256'] != file_digest(heap):
         raise Rejected('modified verifier heap')
@@ -174,8 +218,7 @@ def replay_frozen(frozen, timeout=600, memory_gib=32):
         resource.setrlimit(resource.RLIMIT_AS, (memory, memory))
         resource.setrlimit(resource.RLIMIT_FSIZE, (256*1024**2, 256*1024**2))
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    with tempfile.TemporaryDirectory(prefix='replay-', dir=build) as temporary:
-        work = Path(temporary)
+    with replay_workspace(build, work) as work:
         snapshot = work/'input'
         prepare_snapshot(frozen, snapshot)
         (snapshot/'score.txt').write_text(str(frozen.score), encoding='ascii')
@@ -183,8 +226,10 @@ def replay_frozen(frozen, timeout=600, memory_gib=32):
         environment['HOL_INIT_E_SNAPSHOT'] = str(snapshot)
         with (work/'replay.log').open('wb') as log:
             try:
-                process = subprocess.run([str(executable), '--holstate='+str(heap),
-                    str(ROOT/'verifier/check.sml')], cwd=work, env=environment,
+                command = hidden_replay_command(
+                    [str(executable), '--holstate='+str(heap), str(root/'verifier/check.sml')],
+                    hide, work, [heap, root/'verifier', executable.parent.parent])
+                process = subprocess.run(command, cwd=work, env=environment,
                     stdout=log, stderr=subprocess.STDOUT, timeout=timeout,
                     preexec_fn=limits)
             except subprocess.TimeoutExpired as exc:
@@ -198,6 +243,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('candidate', type=Path, nargs='?', help='legacy positional submission directory')
     parser.add_argument('--local', type=Path, help='submission directory; verify by default, as in init-e')
+    parser.add_argument('--trusted', type=Path, help='operator-owned trusted checkout (defaults to this checkout)')
+    parser.add_argument('--work', type=Path, help='fresh directory to retain the frozen inputs and replay log')
+    parser.add_argument('--hide', type=Path, action='append', default=[], help='mask a host file or directory during replay (repeatable; requires bwrap)')
     parser.add_argument('--structural-only', action='store_true', help='check the envelope without proving Certificate')
     parser.add_argument('--progress', action='store_true', help='report verification stages to stderr')
     parser.add_argument('--hol', type=Path, help='operator HOL checkout for automatic verifier preparation')
@@ -220,31 +268,39 @@ def main(argv=None):
         parser.error('replay resource limits must be positive')
     try:
         progress("Checking the fixed challenge and freezing submission literals")
-        check_trusted()
+        root = args.trusted.resolve() if args.trusted is not None else ROOT
+        check_trusted(root)
+        if args.work is not None and (args.work.exists() or args.work.is_symlink()):
+            raise Rejected('work directory must not exist')
         frozen = freeze(candidate)
         report = frozen.report()
         if args.prepare is not None:
             prepare_snapshot(frozen, args.prepare)
         if args.structural_only:
+            if args.work is not None:
+                with replay_workspace(root/'.build', args.work) as work:
+                    prepare_snapshot(frozen, work/'input')
             print(json.dumps({'status':'structural_pass', **report}))
             return 0
         if replay:
             progress('Replaying the exact fixed Certificate')
             try:
-                replay_frozen(frozen, args.timeout, args.memory_gib)
+                replay_frozen(frozen, args.timeout, args.memory_gib,
+                              trusted=root, work=args.work, hide=args.hide)
             except ReplayUnavailable:
                 # Only operator-owned tools run here. The candidate was already
                 # frozen and never participates in preparing this trusted heap.
-                stamp = ROOT/'.build/hol-path.txt'
+                stamp = root/'.build/hol-path.txt'
                 hol = args.hol or os.environ.get('HOLDIR') or (
-                    stamp.read_text().strip() if stamp.is_file() else ROOT.parent/'HOL')
+                    stamp.read_text().strip() if stamp.is_file() else root.parent/'HOL')
                 progress('Preparing the fixed HOL verifier')
-                subprocess.run([sys.executable, str(ROOT/'tools/prepare_verifier.py'),
+                subprocess.run([sys.executable, str(root/'tools/prepare_verifier.py'),
                     '--hol', str(hol)], check=True,
                     stdout=sys.stderr if args.progress else subprocess.DEVNULL,
                     stderr=sys.stderr if args.progress else subprocess.DEVNULL)
                 progress('Replaying the frozen submission with the prepared verifier')
-                replay_frozen(frozen, args.timeout, args.memory_gib)
+                replay_frozen(frozen, args.timeout, args.memory_gib,
+                              trusted=root, work=args.work, hide=args.hide)
             print(json.dumps({'status':'verified', **report}))
             return 0
     except ReplayUnavailable as exc:

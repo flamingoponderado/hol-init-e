@@ -239,3 +239,22 @@ HOL pin (69 s and 32 s). The fixed verifier heap was rebuilt successfully.
 The real-HOL replay regression on this heap loaded all 904,476 submitted
 literal bytes and rejected an unrelated truth theorem at the exact Certificate
 conclusion check. This is a negative boundary test, not a positive certificate.
+
+## Original verifier CLI options
+
+The single Python entry point now supports all original option names:
+`--local`, `--trusted`, `--work`, repeatable `--hide`, `--structural-only`, and
+`--progress`. The trusted root is explicit operator input. Work directories
+are fresh/private and retain the sanitized submission and replay log. Path
+hiding uses Bubblewrap with read-only host mounts and a writable private
+workspace; inability to apply isolation rejects the replay.
+
+All 25 verifier unit tests pass, including trusted-root selection, retained
+literal snapshots, immutable input across preparation retries, and rejection
+of missing sandbox support or hidden required paths. A real isolation test
+checks both file and directory masking, unchanged host files, and workspace
+writes. A real subprocess test invokes the original CLI flags with all
+904,476 bytecode bytes, hides the original submission and a separate private
+directory, automatically rebuilds the stale heap, and reaches the exact
+Certificate-conclusion rejection for an unrelated proof. The full baseline
+Certificate and positive replay are still outstanding.

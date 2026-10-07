@@ -19,8 +19,8 @@ frozen before preparation and are not read again afterward.
 
 `--structural-only` explicitly returns `structural_pass` (exit 0) for a valid
 envelope without claiming a Certificate proof. The legacy positional interface
-still performs preflight unless `--replay` is specified. Compatibility with the
-original `--trusted`, `--work`, and `--hide` options remains to be implemented.
+still performs preflight unless `--replay` is specified. The original
+`--trusted`, `--work`, and `--hide` options are described below.
 
 ## Frozen literals and the exact statement
 
@@ -89,3 +89,35 @@ term constructors rather than executing the audit script.
 `trusted-files.json` is updated only by challenge authors for a release. The
 verifier never regenerates it for a participant. Re-run operator heap preparation
 after changing fixed challenge or verifier files.
+
+## Original command-line options
+
+The original option names are supported: `--local`, `--trusted`, `--work`,
+repeatable `--hide`, `--structural-only`, and `--progress`.
+
+`--trusted` selects the operator-owned HOL port checkout whose manifest,
+challenge, dependency pins, checker, and prepared heap are used. It is never
+read from a submission. `--work` must name a new directory; it retains frozen
+inputs and `replay.log` after success or rejection. Without it, replay uses a
+private temporary directory. Structural checks with `--work` retain the
+sanitized inputs, but never claim a proof was verified.
+
+`--hide` masks each named file or directory in the replay process using
+Bubblewrap. The host filesystem is mounted read-only, the replay workspace is
+writable, and the process has private network and PID namespaces. Hidden
+directories are empty mounts; hidden file contents are inaccessible (the
+replacement may read as empty or be denied by the host mount policy). Overlap with
+required verifier, HOL, heap, or workspace paths is rejected. Missing isolation
+support or failed sandbox execution rejects verification; masking is never
+silently skipped. Structural-only mode executes no participant proof process.
+
+Example:
+
+```sh
+python3 verifier/verify.py --local /path/to/submission \
+  --trusted /path/to/hol-init-e --work /path/to/new-run \
+  --hide /path/to/submission --hide /path/to/private-data --progress
+```
+
+The full baseline Certificate and a positive end-to-end replay remain separate
+proof obligations; CLI compatibility does not establish them.

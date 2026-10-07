@@ -171,3 +171,33 @@ source directories are now included by the build driver.
 The real `verify.py --local` path automatically rebuilt its stale fixed heap
 and rejected the unrelated truth article after preparation. Twenty Python
 verifier tests also pass. No positive baseline Certificate is claimed.
+
+## Finite bootstrap initialization copy
+
+`initBootstrapIterationTheory` passes the normal build (31 s observed). It
+proves pointer advancement, preservation of memory outside the destination,
+byte-for-byte copying under explicit separation premises, non-failure under
+alignment/domain premises, and the exact loop branch/exit PC for any finite
+iteration count. Its loop body is the five actual bootstrap instructions.
+
+`initBootstrapCopyTheory` specialises these facts to the fixed layout. The
+4,616 iterations copy all 36,928 initialization bytes from ROM to RAM, preserve
+all other memory, and exit after the final word. The concrete source/destination
+separation and alignment arithmetic is proved, with memory-domain membership
+remaining an explicit premise. The full theory rebuild passed (33 s observed).
+
+`initBootstrapStartupTheory` passes the normal rebuild (35 s observed). It
+proves the three actual prefix instructions set
+the expected pointers and enter the copy loop at `0x80000018`. Its composed
+`bootstrap_copy_effect` theorem reaches `0x8000002c`, copies the full data
+range, preserves other memory, and has no failed-state flag, assuming the
+initial PC, little-endian/non-failed state, and access to both memory ranges.
+
+These are proofs of the assembler state updates. Instruction installation,
+RISC-V step simulation, the remaining bootstrap stores, and composition with
+compiler correctness remain necessary for the complete Certificate. No
+participant statement or fixed verifier condition was relaxed.
+
+The compatibility build also passed upstream `riscv_targetProofTheory`
+(349 s observed). `pan_to_targetProofTheory` and the final evaluated artifact
+theories are still running; the recorded tested toolchain has not changed.

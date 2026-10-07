@@ -355,3 +355,30 @@ and untrusted theorem tags. The challenge definitions are unchanged.
 ```sh
 python3 tools/build.py --hol /path/to/tested-HOL initSourceOrderTheory.uo
 ```
+
+## Exact serialized compiler configuration
+
+`initConfigNumbersTheory` checks a proposed list of 69,393 numbers against
+the saved configuration characters and derives exact character decoding using
+the upstream inverse theorem. `initDecodedConfigTheory` then obtains a candidate
+record from a conditional decoder translation and checks its entire encoding:
+
+```text
+|- encode_backend_config candidateConfig = compiledBackendConfig
+|- compiledConfig = candidateConfig
+```
+
+The final configuration theorems are closed and checked for untrusted theorem
+tags. Decoder preconditions are retained, and their conditional results supply
+only candidate data. The unconditional encoding equality and upstream
+encode/decode inverse establish the result. The local decoder translator derives
+a variant of the pinned HOL translator without modifying HOL or CakeML sources;
+it fails if the expected source patterns change.
+
+The split configuration theory passed (253 s wall time, including ancestor
+loading). This result supplies exact compiler metadata; it does not establish
+baseline admission or the challenge Certificate.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initDecodedConfigTheory.uo
+```

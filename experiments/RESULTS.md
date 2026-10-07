@@ -813,3 +813,32 @@ bounds, full `Certificate`, and positive article replay remain to be proved.
 In particular, the generic CakeML installation callback obligation does not
 hold for the fixed cache-hook callback. The no-install result is a premise for
 bridging that semantic difference, not a completed bridge.
+
+
+## FFI installation and an auxiliary compiler configuration
+
+`initFfiInstallationTheory` passed a clean build (18 s).
+`admitted_ffi_interference` proves CakeML's `ffi_interfer_ok` for every admitted
+submission using the fixed challenge callbacks. Admission supplies the exact
+external/MMIO boundary, MMIO register bounds, and aligned return addresses;
+`mmio_info_before_boundary` rules out MMIO metadata for external calls.
+
+`initChallengeConfigTheory` passed (16 s).
+`challenge_install_callback_irrelevant` proves, for every fuel and machine/FFI
+state, that changing only `install_interfer` leaves `challengeEvaluate`
+unchanged. The fuel induction unfolds both sides explicitly, uses unchanged
+FFI-array reads, and commutes installation-callback updates past next/FFI
+interference updates.
+
+`initCompilerMachineTheory` passed (18 s). Its auxiliary
+`compilerMachineConfig` supplies the callback required by the upstream
+compiler theorem: copy the already-read bytes, return to the link register,
+and return the destination address in register 10. The theory proves
+`install_interfer_ok`, preserves the proved FFI condition, and establishes
+exact equality of its `challengeEvaluate` results with `submissionConfig`.
+The fixed challenge files and verifier statement are unchanged.
+
+This does not establish equality of upstream `targetSem.evaluate` and the
+cache-hook evaluator. A native simulation using the no-install property is
+still required, along with the remaining memory/bitmap installation and
+resource obligations, before a full Certificate or positive replay is claimed.

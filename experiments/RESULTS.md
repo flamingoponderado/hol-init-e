@@ -461,3 +461,25 @@ python3 tools/build.py --hol /path/to/tested-HOL initBootstrapPrefixStepsTheory.
 The copy-loop iterations and suffix still need their step-sequence proofs.
 The restricted RISC-V simulation and full challenge Certificate remain
 outstanding; these startup results do not imply a complete certificate.
+
+## Trace composition and copy-loop ROM preservation
+
+`initBootstrapExecutionTheory` passed. `bootSteps_append` composes checked
+instruction sequences, and `bootSteps_RTC` turns such a sequence into the
+upstream reflexive-transitive assembler-step relation ending at `bootRun`.
+Configuration fields (link register index, alignment, endianness, and memory
+domain) are preserved by `bootRun`; the link register index and alignment are
+also preserved by `copyIterations`.
+
+The ROM invariant is preserved by one copy-loop state update and by any finite
+number of iterations when their destination bytes lie at or above
+`bootDataRam`. These results use the existing proved write-footprint lemmas;
+all exported results are closed and tag-checked.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initBootstrapExecutionTheory.uo
+```
+
+The step premises for the five instructions in a copy-loop iteration must
+still be established and composed through all 4,616 iterations. ROM
+preservation alone does not prove those steps or the final Certificate.

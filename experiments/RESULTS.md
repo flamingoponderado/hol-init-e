@@ -923,3 +923,27 @@ must target present functions of strictly smaller rank, all frames are at most
 evidence for implementing a compact HOL checker over the actual optimized
 word program, not a checked HOL resource bound yet. The generated Lean stack
 proof files need not be imported.
+
+
+## Complete native-entry good_init_state
+
+`initBaselineStartPcTheory` passed a clean build (91 s), checking the saved halt
+and installation PCs, external dispatch slots, MMIO entries, alignment, and
+exact name/entry lengths. Finite reserved-slot witnesses are discharged with
+bounded existential evaluation after reducing set membership.
+
+`initInstallationMetadataTheory` passed (77 s). `cv_compute` proves that the
+checked decoded compiler configuration has exactly `SOME compiledFfiNames`
+and `compiledMmio` in its lab configuration.
+
+`initBaselineGoodInitTheory` passed (97 s). For any restricted machine state
+related to the proved bootstrap final assembler state, it establishes the full
+upstream `good_init_state` contract for the auxiliary compiler configuration,
+the exact native bytes, 760-byte code buffer, packed word memory, ordinary
+data allocation, and fixed shared I/O domain. This combines the checked target
+setup, saved-PC layout, callbacks, code/data separation, byte/word relation,
+and memory-domain closure/containment.
+
+The enclosing `pan_installed` witness is still being checked. Native no-install
+simulation, the resource bound, the full challenge Certificate, and positive
+article replay remain outstanding.

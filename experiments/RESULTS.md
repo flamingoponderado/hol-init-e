@@ -600,3 +600,21 @@ universally quantified. This discharges the concrete initial-state premises
 of the preceding bootstrap trace; lifting the trace to restricted RISC-V and
 `challengeEvaluate`, compiler semantic installation/resource premises, and a
 complete Certificate with positive replay remain outstanding.
+
+
+## Restricted instruction step agreement and bootstrap words
+
+`initRestrictedStepTheory` passed (13 s reported theory time). It proves that
+`restrictedNextRISCV` and upstream `NextRISCV` agree whenever the fetched
+instruction is a full word whose decoded constructor is supported. The
+corresponding target-next equality and equality of target-state relations are
+also checked. Fetch and support are explicit premises; this is not yet an
+execution trace transfer.
+
+`initBootstrapRestrictedTheory` passed (33 s reported theory time). Checked
+computation constructs the 52 little-endian words from the exact 208 bootstrap
+bytes and proves that every word decodes to a supported instruction. The
+indexed corollary `bootstrap_word_supported` applies at each offset `4*i` for
+`i < 52`. Both theories check that their exported results are closed and have
+acceptable proof tags. Native-code support and the whole restricted execution
+trace remain outstanding.

@@ -529,3 +529,26 @@ This closes finite copy-loop execution at the assembler level under those
 premises. Connecting the complete startup/copy/suffix trace from the fixed
 initial machine state, lifting it to restricted RISC-V, and completing the
 challenge Certificate remain outstanding.
+
+## Runtime-initialization suffix execution
+
+`initBootstrapSuffixStepsTheory` passed its complete build (8m24s for the theory,
+plus ancestor loading). It proves `bootSteps bootstrapSuffix s`, covering the
+runtime-bound stores, source-header stores, native-entry register setup, and
+final jump. The premises are the ROM invariant, suffix-entry PC, RISC-V
+configuration fields, no initial failure, and membership of the 24-byte and
+40-byte initialization regions in the memory domain.
+
+Each instruction uses the checked fetch/step theorem. Generic store-field
+preservation and the low-memory write-footprint rule discharge configuration
+and ROM-preservation conditions. All exported results and generated rewrite
+rules are closed and tag-checked. Evaluation never unfolds the entire baseline
+ROM to prove a store's local memory-domain premise.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initBootstrapSuffixStepsTheory.uo
+```
+
+Composition with startup and copy execution, connection to the fixed initial
+machine, restricted RISC-V simulation, and the final Certificate remain separate
+obligations.

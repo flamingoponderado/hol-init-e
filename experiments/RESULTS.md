@@ -293,3 +293,38 @@ is an existential output, not an established resource bound. This discharges
 the concrete compilation premise, not all premises of semantic correctness.
 The complete `initCorrectnessInputTheory` rebuild passed on the tested HOL pin
 in 81 s. All new results are checked for hypotheses and untrusted theorem tags.
+
+## Source correctness premises
+
+`initSourceChecksTheory` passed a fresh build (65 s). Kernel-checked evaluation
+of the fixed `prepared_guest` proves `pancake_good_code`, distinct parameters,
+distinct function names, and the exception-count bound required by
+`pan_to_target_compile_semantics`. The operand traversal uses first-order
+recursive equations proved equivalent to the upstream `every_exp` predicate;
+its translation preconditions are discharged by datatype induction.
+
+`initGlobalLayoutTheory` passed (61 s). The guest has no named-structure
+declarations, its structure context is empty, and its global declarations
+occupy exactly **93 words**, equal to the fixed challenge's `globalsWords`.
+Declaration checks and shape extraction use `cv_compute`; the small resulting
+shape list is evaluated in the kernel.
+
+`initSourceAllocationTheory` passed its final rebuild (56 s). It proves the
+global allocation premise for every input
+of the fixed `sourceInitialState`. Ordinary memory lies below the globals,
+the globals lie above ordinary memory, the region endpoint is outside ordinary
+memory, and its byte size fits in 64 bits. `prepared_source_premises` combines
+this result with the syntax checks and empty initial code/local/global/exception
+maps. These are closed results checked for hypotheses and untrusted theorem tags.
+
+Reproduce this theory chain with:
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initSourceAllocationTheory.uo
+```
+
+The results discharge specific source-side premises of the compiler theorem.
+They do not establish equivalence between the original and reordered declaration
+semantics, target installation/execution, sufficient runtime stack/heap bounds,
+or the final challenge Certificate. A positive full certificate replay remains
+outstanding.

@@ -483,3 +483,26 @@ python3 tools/build.py --hol /path/to/tested-HOL initBootstrapExecutionTheory.uo
 The step premises for the five instructions in a copy-loop iteration must
 still be established and composed through all 4,616 iterations. ROM
 preservation alone does not prove those steps or the final Certificate.
+
+## Copy-loop instruction execution
+
+`initBootstrapCopyStepsTheory` passed. `copy_loop_steps` proves `bootSteps
+copyLoopBody s`: the load, store, two pointer increments, and conditional branch
+all take valid upstream assembler steps. Its premises require the fixed loop
+entry PC, the RISC-V configuration fields, no initial failure, aligned source
+and destination words, membership of all eight accessed bytes in the memory
+domain, and destination bytes above the executable ROM.
+
+The theory checks load safety, load/store configuration-field preservation,
+and preservation of the ROM invariant. It handles both branch outcomes. The
+encoded instruction lengths and membership at their fixed bootstrap PCs are
+checked in HOL. All exported results are closed and tag-checked.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initBootstrapCopyStepsTheory.uo
+```
+
+The finite 4,616-iteration execution theorem remains to be assembled from this
+per-iteration result and the existing pointer, memory, and branch-bound proofs.
+Suffix execution, restricted RISC-V simulation, and full Certificate replay
+also remain outstanding.

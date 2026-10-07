@@ -968,3 +968,21 @@ a state with the required target relation.
 This completes installation. Native no-install simulation between the compiler
 and fixed challenge evaluator, resource bounds, the full challenge Certificate,
 and positive article replay remain outstanding.
+
+
+## Challenge evaluator clock and observation properties
+
+`initChallengeClockTheory` passed a clean build (30 s). It proves preservation
+of non-timeout results when increasing the execution clock, monotonicity of
+I/O event prefixes both from the initial state and between execution clocks,
+and uniqueness of non-timeout results across clocks. All four theorems are
+closed and tag checked for the fixed challenge evaluator, including its cache
+hook. These are prerequisites for lifting native simulation to observable
+challenge behavior; they do not yet establish the full Certificate.
+
+`initLabSimulationHelpersTheory` passed a clean build (17 s), including explicit
+closure and tag checks. It exposes 27 lemmas that were local to the pinned
+CakeML compiler proof, covering encoded instruction bytes, byte arrays,
+labels, and external-call indices. They support the no-install simulation
+without changing the CakeML submodule. The full simulation is still under
+proof development.

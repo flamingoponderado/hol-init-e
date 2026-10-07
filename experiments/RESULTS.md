@@ -896,3 +896,30 @@ heap/stack and bitmap byte-domain union is contained in the baseline program
 domain and, using the proved bootstrap constants, in the actual native-entry
 assembler memory domain. This discharges the data-domain containment component
 of `good_init_state`; the full installation contract is still incomplete.
+
+
+## Native code placement and shared-memory setup
+
+`initCodeMemoryTheory` passed a clean build (14 s). It derives separated code
+installation from indexed byte facts and proves exact `read_bytearray` recovery
+and `code_loaded` from a related target state. `initBaselineCodeMemoryTheory`
+passed (93 s): the native image is disjoint from ordinary data, the 760-byte
+code buffer is installed outside that data domain, the size does not wrap,
+and every target state related to the native-entry assembler state has the
+exact compiled code loaded.
+
+`initFfiBoundaryTheory` passed (15 s), proving that admission's name-boundary
+predicate selects exactly the compiler's external-call/MMIO boundary.
+`initSharedDomainTheory` passed (33 s), proving alignment closure of shared I/O
+memory, program/shared disjointness, and identity interference for the auxiliary
+compiler configuration. The saved-PC layout and assembled `good_init_state`
+proofs are still being checked; no full Certificate is claimed.
+
+For the remaining resource obligation, the original Lean entry point is
+`submission/InitECandidate/Proofs/SourceStackCertificate.lean`. It uses the
+checker and proof in `Proofs/StackAnalysis/RankedBound.lean`: all direct calls
+must target present functions of strictly smaller rank, all frames are at most
+92 words, and an entry rank of 39 gives the bound `(39+1)*187 = 7480`. This is
+evidence for implementing a compact HOL checker over the actual optimized
+word program, not a checked HOL resource bound yet. The generated Lean stack
+proof files need not be imported.

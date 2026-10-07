@@ -413,3 +413,27 @@ This establishes layout admissibility. Actual bootstrap execution, compiler
 resource/installation premises, restricted-machine simulation, and the complete
 challenge Certificate still require proofs. No positive full certificate replay
 is claimed.
+
+## Bootstrap instruction fetch
+
+`initBootstrapInstalledTheory` passed. It proves that the bootstrap's 208 bytes
+are installed in the admitted baseline's initial program domain, for every
+input. A domain lemma excludes all reserved dispatch slots below native entry.
+Checked evaluation verifies the offset, bounds, and exact encoded slice for
+every bootstrap instruction. A generic memory-slice theorem then yields:
+
+```text
+|- MEM (pc,instruction) bootstrapBlocks ==>
+   bytes_in_memory (n2w pc) (riscv_enc instruction)
+     (initialMemory baselineSubmission input)
+     (programDomain baselineSubmission)
+```
+
+All exported results are closed and checked for untrusted tags. This establishes
+initial fetchability. The bootstrap execution trace must still establish these
+fetch premises and successful assembler steps at each intermediate state,
+including every copy-loop iteration, before lifting to restricted RISC-V.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initBootstrapInstalledTheory.uo
+```

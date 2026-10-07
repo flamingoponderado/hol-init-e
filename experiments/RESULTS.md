@@ -671,3 +671,18 @@ restricted CPU from the challenge's actual initial state, including zero RAM.
 It does not yet prove execution by `challengeEvaluate`, whose program-domain,
 FFI, and memory-interference checks must also be connected. The full baseline
 Certificate and positive article replay are still not proved.
+
+
+## Restricted machine-configuration premise
+
+`initMachineConfigTheory` passed a clean build (15 s reported). It derives
+`enc_ok riscv_config` from restricted encoder correctness and proves:
+
+```text
+|- mc_conf_ok (challengeMachineConfig pc program shared names nexternal extra)
+```
+
+This holds for arbitrary layout arguments; admission separately validates the
+concrete layout. It discharges the compiler theorem's `mc_conf_ok` premise for
+the challenge machine. Backend configuration, initial installation, resource
+bounds, and semantic/evaluator composition remain distinct obligations.

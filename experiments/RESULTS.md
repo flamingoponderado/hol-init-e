@@ -705,3 +705,20 @@ configuration types are required in inherited tactic instantiations to avoid
 introducing unrelated polymorphic configurations with the same printed name.
 Both exported simulation theorems are closed and tag checked. Trace composition
 and concrete bootstrap FFI-disjointness remain to be instantiated.
+
+
+## Composition of challenge-evaluator instruction prefixes
+
+`initChallengeExecutionTheory` passed a clean build (15 s reported).
+`challenge_rtc_execution` composes a finite `challengeAsmEdge` trace into an
+equality of `challengeEvaluate` prefixes for every remaining fuel, preserving
+the final target-state relation. Each edge explicitly requires an assembler
+step, the fixed program/memory domain, and an instruction range disjoint from
+FFI entries. `challenge_identity_interference` discharges the identity
+interference premise for `challengeMachineConfig`; `identity_shift_interfer`
+shows that consuming such interference leaves the configuration unchanged.
+
+The composition and instruction results are closed and tag checked. Applying
+the theorem to the concrete bootstrap requires the stronger assembler trace
+with the FFI-range condition on every edge; the previously proved raw CPU RTC
+alone does not supply that condition.

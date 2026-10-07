@@ -506,3 +506,26 @@ The finite 4,616-iteration execution theorem remains to be assembled from this
 per-iteration result and the existing pointer, memory, and branch-bound proofs.
 Suffix execution, restricted RISC-V simulation, and full Certificate replay
 also remain outstanding.
+
+## All 4,616 copy iterations execute
+
+`initBootstrapCopyExecutionTheory` passed. It composes the checked five-instruction
+loop body into `copyInstructions 4616` and proves that its state update agrees
+with `copyIterations 4616`. The fixed address bounds establish alignment,
+memory-domain membership, and ROM separation at every intermediate iteration.
+The proof also establishes each iteration's loop-entry PC and non-failure.
+
+`baseline_copy_execution` proves the upstream reflexive-transitive assembler-step
+relation from loop entry to `copyIterations 4616 s`, given the initial ROM
+invariant, configuration fields, fixed source/destination/end pointers, no
+initial failure, and membership of the 36,928 source and destination bytes in
+the memory domain. All exported results are closed and tag-checked.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initBootstrapCopyExecutionTheory.uo
+```
+
+This closes finite copy-loop execution at the assembler level under those
+premises. Connecting the complete startup/copy/suffix trace from the fixed
+initial machine state, lifting it to restricted RISC-V, and completing the
+challenge Certificate remain outstanding.

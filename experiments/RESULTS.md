@@ -986,3 +986,12 @@ CakeML compiler proof, covering encoded instruction bytes, byte arrays,
 labels, and external-call indices. They support the no-install simulation
 without changing the CakeML submodule. The full simulation is still under
 proof development.
+
+
+## Initial native simulation relation
+
+`initLabInitialStateTheory` passed a clean build (17 s). It exposes the pinned
+compiler proof that a correctly installed image establishes `state_rel` for
+`make_init`, including external calls and shared-memory metadata. The theorem
+is closed and tag checked. The same theory proves that `filter_skip` preserves
+and reflects `no_install`, supporting the challenge-specific semantics bridge.

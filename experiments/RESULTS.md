@@ -889,3 +889,10 @@ satisfies `target_configured` for the auxiliary compiler machine.
 All results are closed and tag checked. The complete `pan_installed` contract,
 native no-install simulation, stack/resource bounds, full Certificate, and
 positive article replay remain outstanding.
+
+
+`initBaselineDataDomainTheory` passed a clean build (86 s). The entire
+heap/stack and bitmap byte-domain union is contained in the baseline program
+domain and, using the proved bootstrap constants, in the actual native-entry
+assembler memory domain. This discharges the data-domain containment component
+of `good_init_state`; the full installation contract is still incomplete.

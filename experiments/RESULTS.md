@@ -686,3 +686,22 @@ This holds for arbitrary layout arguments; admission separately validates the
 concrete layout. It discharges the compiler theorem's `mc_conf_ok` premise for
 the challenge machine. Backend configuration, initial installation, resource
 bounds, and semantic/evaluator composition remain distinct obligations.
+
+
+## Normal-instruction simulation inside the fixed challenge evaluator
+
+`initChallengeStepTheory` passed a clean build (16 s reported). It adapts the
+pinned CakeML `targetProps` normal-instruction prefix proof to
+`challengeEvaluate`. The theorem `asm_step_IMP_challenge_step` proves that an
+assembler step executes in a nonzero number of challenge-evaluator steps,
+with the final target-state relation and equality for every remaining fuel.
+Its premises retain encoder correctness, matching program/memory domains,
+instruction-range disjointness from FFI entries, permitted interference, and
+the initial target-state relation.
+
+Only the normal-instruction evaluator branch is used. The fixed cache-hook
+and FFI branches retain their challenge definitions. Explicit 64-bit RISC-V
+configuration types are required in inherited tactic instantiations to avoid
+introducing unrelated polymorphic configurations with the same printed name.
+Both exported simulation theorems are closed and tag checked. Trace composition
+and concrete bootstrap FFI-disjointness remain to be instantiated.

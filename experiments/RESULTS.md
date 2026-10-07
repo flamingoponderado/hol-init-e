@@ -866,3 +866,26 @@ address domain. These theorems are closed and tag checked. Reconstruction of
 the concrete bitmap word allocation and the remaining installation,
 native-simulation, resource-bound, Certificate, and positive-replay obligations
 are still pending.
+
+
+## Exact native-entry bitmap allocation and target configuration
+
+`initBaselineBitmapWordsTheory` passed a clean build (98 s), reconstructing
+each of the 4,613 compiled bitmap words from the copied machine bytes.
+`initBitmapDomainTheory` passed (29 s): its aligned byte domain is exactly the
+word-address image, and the byte domain is closed under alignment.
+`initWordListMemoryTheory` then connects indexed memory equalities to the
+compiler's separated word-list predicate. `initBaselineBitmapInstalledTheory`
+passed (95 s), establishing the exact bitmap allocation and empty data stack
+in that predicate.
+
+`initDataDomainTheory` passed (31 s), proving heap/stack alignment closure,
+separation from the bitmap region, and disjointness of both ordinary regions
+from shared I/O memory. `initBaselineConfiguredTheory` passed (91 s): the
+proved bootstrap execution preserves the memory domain, link-register index,
+instruction alignment, and endianness, and the resulting native-entry state
+satisfies `target_configured` for the auxiliary compiler machine.
+
+All results are closed and tag checked. The complete `pan_installed` contract,
+native no-install simulation, stack/resource bounds, full Certificate, and
+positive article replay remain outstanding.

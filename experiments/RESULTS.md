@@ -618,3 +618,33 @@ indexed corollary `bootstrap_word_supported` applies at each offset `4*i` for
 `i < 52`. Both theories check that their exported results are closed and have
 acceptable proof tags. Native-code support and the whole restricted execution
 trace remain outstanding.
+
+
+## Encoder correctness for the restricted RISC-V target
+
+`initRestrictedRulesTheory`, `initRestrictedEvaluatorTheory`,
+`initRestrictedTargetTheory`, and `initRestrictedEncoderTheory` passed.
+The encoder proof took 5m07s of theory time, plus loading. Its final result is:
+
+```text
+|- encoder_correct restrictedTarget
+```
+
+The adapted proof retains the pinned CakeML assembler/configuration arguments.
+A local evaluator is derived from the pinned HOL RISC-V step library. Before
+applying each restricted step rule, it proves that the decoded instruction's
+constructor satisfies `supported_instruction`. It never asserts this premise
+or widens the challenge's decoder. The adapter refuses unsupported `ADDW`;
+checked arithmetic, load, store, conditional-branch, and jump examples pass.
+The HOL and CakeML checkouts are not modified by this adapter.
+
+The full encoder proof covers all valid assembler instructions under the
+RISC-V configuration, including the absence of usable floating-point registers.
+The final theorem is closed and passes `check_thm`. This supplies the restricted
+encoder premise required by compiler correctness, rather than an unchecked
+whole-ROM instruction scan.
+
+`initEncoderExecutionTheory` also passed. `encoder_rtc_reaches` lifts a finite
+assembler-step RTC and an initial target-state relation to finite target-next
+execution with the final target-state relation. This generic result does not
+by itself establish the additional checks of `challengeEvaluate`.

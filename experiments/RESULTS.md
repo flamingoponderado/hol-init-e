@@ -123,8 +123,8 @@ keeping the larger native output below the fixed source code-buffer headers.
 Encoding and layout facts do not by themselves prove bootstrap execution.
 `initBaselineRom` also passed an isolated build: its 950,336-byte image contains
 the exact native bytes and initialization data at the specified offsets. The
-candidate image is in `artifacts/baseline/`, with no admission or Certificate
-proof claimed.
+candidate image is in `artifacts/baseline/`. Its admission proof is now checked
+(see below); its full Certificate remains unproved.
 
 The build driver now includes upstream Pancake/backend/RISC-V semantic proof
 sources. `pan_to_targetProofTheory` and `riscv_targetProofTheory` are required
@@ -382,3 +382,34 @@ baseline admission or the challenge Certificate.
 ```sh
 python3 tools/build.py --hol /path/to/tested-HOL initDecodedConfigTheory.uo
 ```
+
+## Baseline submission admission
+
+`initCompiledMetadataTheory` passed (79 s wall time). Its checked configuration
+contains **20 external FFI names** and **13 MMIO records**, for 33 total names.
+Every MMIO address offset is nonnegative.
+
+`initBaselineAdmissionTheory` passed its complete build. It proves:
+
+```text
+|- baselineMetadataRoundtrip
+|- admitted baselineSubmission
+|- initialPc + LENGTH bootstrapBytes <
+   baselineNativePc - ffiOffset * (compiledFirst + 2)
+```
+
+The submission uses the exact 950,336-byte baseline ROM and the exact compiled
+metadata. The roundtrip check rules out information loss when converting signed
+compiler offsets to the natural offsets of the fixed challenge. Admission is
+proved by kernel evaluation of the concrete metadata and proved ROM length,
+using finite-quantifier equivalences. Compiler computation and metadata literal
+extraction use `cv_compute`. All exported results are closed and tag-checked.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initBaselineAdmissionTheory.uo
+```
+
+This establishes layout admissibility. Actual bootstrap execution, compiler
+resource/installation premises, restricted-machine simulation, and the complete
+challenge Certificate still require proofs. No positive full certificate replay
+is claimed.

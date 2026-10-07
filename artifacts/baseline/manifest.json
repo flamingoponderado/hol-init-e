@@ -1,7 +1,7 @@
 {
   "kind": "candidate-baseline-rom",
   "certificate": "not_proved",
-  "admission": "not_proved",
+  "admission": "proved",
   "native_entry": "0x80000400",
   "data_rom": "0x800df000",
   "data_ram": "0xa0020000",
@@ -16,5 +16,6 @@
       "bytes": 208,
       "sha256": "75572cb06a064826c46a5167f9b88befca5c4d3306b5067ac5813e89e4c91fc8"
     }
-  }
+  },
+  "admission_theorem": "initBaselineAdmission.baseline_admitted"
 }

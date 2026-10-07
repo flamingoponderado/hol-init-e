@@ -552,3 +552,25 @@ python3 tools/build.py --hol /path/to/tested-HOL initBootstrapSuffixStepsTheory.
 Composition with startup and copy execution, connection to the fixed initial
 machine, restricted RISC-V simulation, and the final Certificate remain separate
 obligations.
+
+## Complete assembler bootstrap trace
+
+`initBootstrapFullExecutionTheory` passed. `bootstrap_full_execution` composes
+the startup prefix, all 4,616 copy iterations, and the initialization suffix into
+the upstream reflexive-transitive assembler-step relation from `s` to
+`bootFinalState s`. ROM preservation is carried across both phase boundaries.
+
+The theorem assumes the initial PC and RISC-V configuration fields, the initial
+ROM invariant, no initial failure, and membership of the copy-data and header
+regions in the memory domain. The existing `bootstrap_final_effect` supplies
+the native-entry PC, registers, and final memory effects. All exported results
+are closed and tag-checked.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initBootstrapFullExecutionTheory.uo
+```
+
+This closes composition of the assembler bootstrap trace. The fixed initial
+challenge machine must still be related to an assembler state satisfying these
+premises. Restricted RISC-V simulation, compiler resource/installation premises,
+and the complete challenge Certificate and positive replay remain outstanding.

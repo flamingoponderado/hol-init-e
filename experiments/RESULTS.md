@@ -258,3 +258,38 @@ writes. A real subprocess test invokes the original CLI flags with all
 directory, automatically rebuilds the stale heap, and reaches the exact
 Certificate-conclusion rejection for an unrelated proof. The full baseline
 Certificate and positive replay are still outstanding.
+
+## Native-byte installation and compiler layout bridge
+
+`initBootstrapFrameTheory` passed (31 s). It proves preservation of memory
+below initialization RAM, the memory domain/endian flag, and CakeML's
+`bytes_in_memory` predicate for code in that range.
+
+`initInitialCodeTheory` proves byte installation from the fixed
+`initialMemory` definition. Code-range bytes are independent of shared
+input/output memory. Addresses at or above the submission anchor cannot
+coincide with reserved FFI entries under the challenge's anchor-spacing
+condition. Its general code-slice installation theorem passed (14 s).
+
+`initNativeInstalledTheory` passed (76 s). It connects the checked ROM-slice
+equality to the exact compiled native bytes in initial memory, then preserves
+their installation through the bootstrap state updates. Its premises bind
+the submission to `baselineRom` and `baselineNativePc`, retain the FFI spacing
+condition, and bind the assembler memory/domain to the fixed initial memory
+and program domain. This does not prove a RISC-V execution trace.
+
+`pancakeCorrectnessBridgeTheory` passed (18 s). With performance calls disabled,
+the compiler entry point used by Pancake's semantic correctness theorem and
+the concrete `from_word_0` pipeline produce equal bytes, bitmaps, and target
+layout. Symbol names and intermediate configuration bookkeeping are projected
+out by a proved equality. The stack/resource and source-semantic premises of
+the correctness theorem remain necessary.
+
+`initCorrectnessInput.guest_correctness_compilation` instantiates that bridge
+for the fixed prepared guest and checked allocation. The theorem gives a
+successful `compile_prog_max` result containing the exact `compiledBytes`,
+`compiledBitmaps`, and target layout from `compiledConfig`. The stack maximum
+is an existential output, not an established resource bound. This discharges
+the concrete compilation premise, not all premises of semantic correctness.
+The complete `initCorrectnessInputTheory` rebuild passed on the tested HOL pin
+in 81 s. All new results are checked for hypotheses and untrusted theorem tags.

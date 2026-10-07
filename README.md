@@ -8,7 +8,9 @@ CakeML's Pancake compiler supplies one route to a baseline submission.
 The experiment replaces generated Lean computation certificates with HOL4
 `cv_compute` evaluations. The generated Lean proof tree is not imported.
 HOL has proved that the full top-level Pancake compilation returns the
-904,476-byte native RISC-V artifact.
+904,476-byte native RISC-V artifact. The fixed challenge evaluator also has a
+checked finite bootstrap execution to native entry, and the resulting ordinary
+memory agrees with the fixed source state.
 **A complete baseline challenge certificate is not yet proved.** Native code
 alone is not a bootstrapped challenge submission.
 
@@ -125,7 +127,8 @@ See [experiment results](experiments/RESULTS.md) for the compiler results and
 2. Connect compiler correctness to the restricted target and cache-hook
    evaluator, discharging configuration, memory, resource, and non-failure
    premises.
-3. Construct and prove the zero-RAM bootstrap and native-code/data installation.
+3. Finish the compiler installation predicate, using the checked bootstrap,
+   native-byte installation, and source-memory agreement.
 4. Prove the complete baseline `Certificate` and export a replayable article.
 
 `cv_compute` replaces concrete evaluation proofs; these semantic obligations

@@ -758,3 +758,58 @@ stronger edges required by the challenge-evaluator simulation;
 `challengeBootSteps_append` and `challengeBootSteps_RTC` compose them.
 All exported results are closed and tag checked. The strengthened whole-trace
 build is continuing through startup, the copy loop, and initialization.
+
+
+## Complete bootstrap execution in the fixed challenge evaluator
+
+The dependent proofs were rebuilt for native entry `0x80000fec`. Both suffix
+proofs passed (615 s for the assembler trace and 623 s for the stronger
+challenge trace, including ancestor loading). The prefix, 4,616-iteration copy
+loop, final stores, native entry, and ROM preservation compose into
+`bootstrap_challenge_trace`.
+
+`initBaselineChallengeExecutionTheory` then passed a clean build (93 s).
+`baseline_challenge_execution` proves the existence of a finite prefix length
+and native-entry machine state such that, for every remaining fuel, evaluating
+the fixed baseline from its fixed initial state is exactly evaluating from that
+native-entry state. The final state is related to the proved assembler
+`bootFinalState`. `baseline_bootstrap_timeout` exposes the corresponding
+finite prefix result and unchanged FFI state. This uses `challengeEvaluate`
+itself, including its instruction checks and fixed memory/FFI boundaries.
+
+The final instantiation must specialize the FFI type before assuming the
+polymorphic simulation theorem: specializing an already-assumed proposition
+would change a hypothesis. The checked script performs this specialization on
+the closed theorem instead.
+
+## Source memory, configuration, and native proof components
+
+`initBootstrapSourceMemoryTheory` passed a clean build (32 s), proving the five
+fixed source header words and preservation above those headers.
+`initBaselineSourceMemoryTheory` passed (85 s): for every address in
+`ordinaryDomain`, packing the eight final machine bytes produces exactly the
+word in fixed `sourceMemory`. This includes the zeroed ordinary heap beyond
+the headers. The challenge source definitions were not changed.
+
+`initBackendConfigTheory` passed (73 s), proving backend configuration validity
+and the initial machine-configuration premise for the exact compiler input.
+`initChallengeNopTheory` passed (16 s), extending normal instruction simulation
+to compiler padding while retaining the companion interference-search equality.
+
+`initNoInstallTheory` passed (79 s). `guestLabProgram` follows the same
+word-to-word, word-to-stack, and stack-to-lab pipeline as the resource-aware
+compiler, and `guest_lab_no_install` proves the absence of lab-level dynamic
+installation. The upstream theorem is explicitly specialized to 64-bit source
+words; its lab-language conclusion alone does not determine that type.
+
+`initMachineReturnTheory` passed (15 s). It proves the assembler/target
+relations for the fixed external-call return and MMIO read/write returns,
+including alignment and the MMIO destination register bound. The disabled
+floating-point register clauses are discharged using the fixed RISC-V config.
+
+These are closed, tag-checked proof components. The full native execution
+connection, FFI/compiler installation obligations, sufficient stack/resource
+bounds, full `Certificate`, and positive article replay remain to be proved.
+In particular, the generic CakeML installation callback obligation does not
+hold for the fixed cache-hook callback. The no-install result is a premise for
+bridging that semantic difference, not a completed bridge.

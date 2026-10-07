@@ -842,3 +842,27 @@ This does not establish equality of upstream `targetSem.evaluate` and the
 cache-hook evaluator. A native simulation using the no-install property is
 still required, along with the remaining memory/bitmap installation and
 resource obligations, before a full Certificate or positive replay is claimed.
+
+
+## Packed source memory and copied bitmap bytes
+
+`initPackedMemoryTheory` passed a clean build (31 s). It constructs a total
+64-bit word view of the actual machine byte memory and proves the compiler's
+byte/word correspondence, including addresses that are not word aligned.
+`initBaselinePackedMemoryTheory` passed (84 s): on every ordinary source
+address, that view of native-entry memory agrees with the fixed source memory,
+using the source-to-word value conversion.
+
+`initBootWordBytesTheory` passed (75 s), proving little-endian word recovery
+and indexing/slicing of flattened word encodings. `initBitmapFrameTheory`
+passed (31 s), proving that the bootstrap's header stores preserve the copied
+bitmap bytes. `initBaselineBitmapBytesTheory` passed (88 s): every byte in the
+bitmap portion of the concrete native-entry memory equals the corresponding
+byte of the fixed ROM data image.
+
+`initWordListMemoryTheory` passed (9 s). Its generic lemma constructs a
+separated `word_list` from indexed memory equalities over the exact generated
+address domain. These theorems are closed and tag checked. Reconstruction of
+the concrete bitmap word allocation and the remaining installation,
+native-simulation, resource-bound, Certificate, and positive-replay obligations
+are still pending.

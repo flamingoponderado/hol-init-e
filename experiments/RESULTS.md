@@ -741,3 +741,20 @@ The candidate ROM and bootstrap binaries and their manifest hashes were
 regenerated from these checked builds. Dependent execution proofs are being
 rebuilt for this placement; earlier sections reporting `0x80000400` describe
 the previous development layout. The full Certificate remains unproved.
+
+
+## Bootstrap FFI separation and strengthened instruction steps
+
+For the corrected native placement, `initBootstrapFfiTheory` and
+`initBootstrapChallengeStepTheory` passed clean builds (92 s each reported).
+Checked computation derives all baseline FFI addresses and proves that they
+are at or above the end of the 208-byte bootstrap. The range theorem and
+`bootstrap_instruction_ffi_disjoint` then show that every bootstrap instruction
+is disjoint from those entries.
+
+`bootstrap_challenge_step` combines that result with the actual assembler-step
+proof and the fixed ROM/domain invariant. `challengeBootSteps` records the
+stronger edges required by the challenge-evaluator simulation;
+`challengeBootSteps_append` and `challengeBootSteps_RTC` compose them.
+All exported results are closed and tag checked. The strengthened whole-trace
+build is continuing through startup, the copy loop, and initialization.

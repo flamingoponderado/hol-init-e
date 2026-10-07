@@ -3,6 +3,8 @@
 Theory initPrepared
 Ancestors initCrep pan_to_target
 Libs preamble cv_transLib
+(* Do not pretty-print giant evaluated program literals into HTML. *)
+val _ = Feedback.set_trace "TheoryPP.include_html_docs" 0;
 val _ = cv_memLib.use_long_names := true;
 fun save_closed name th =
   if null (hyp th) then save_thm (name, check_thm th)

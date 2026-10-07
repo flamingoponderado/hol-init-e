@@ -10,7 +10,9 @@ assembler configuration, and numeric layout. `initBaselineRom` proves the ROM
 length, exact placement of native bytes/data, and that the native image fits
 below the fixed source code buffer. Both theories passed isolated HOL builds.
 
-Bootstrap execution, machine admission and the complete challenge Certificate
+The load/store copy pair and the five-instruction loop state update now have
+checked assembler-level proofs (`initBootstrapMemory` and `initBootstrapLoop`).
+The complete bootstrap trace, machine admission and challenge Certificate
 are still unproved. These files are development artifacts, not a verified
 submission; no score or certificate article is supplied.
 

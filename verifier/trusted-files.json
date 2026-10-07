@@ -14,7 +14,7 @@
   "provenance.json": "6347d68ec9411e8dd00a97b0803e2dc0607f9aa7ca92b818d81490701c698c90",
   "source/guest.pp.pnk": "d3cec76f0fd072e943f9be62e201b842317a2aa2adcb51bbd0f5cd9dd74d6016",
   "source/instruction-subset.json": "e467e21324984f38ce71af1fc3a35acf16170dca02c7e464736411fddef4bed8",
-  "tools/build.py": "e456ff824c82c028421cfdecb1733ee071a8cc75be41a843cabc9a0631323b0f",
+  "tools/build.py": "39088273cdf57f61e4ce980df11caf594a355b7059a29f0710db07323c7b369a",
   "tools/import_ast.py": "0de641ca7ff42f54f2e64d928326d8b1c1a28efa3834d93df7332cda561a4506",
   "tools/prepare_verifier.py": "b459e80db20fff8da0dcaf996fc3161d536687d21cc0b410be2aa04cd1c88f3e",
   "verifier/certificateReplayLib.sml": "bd615be35f0dad1f387f5ade3c7d294146fc7e2bf5232b4a5b276a9fdc0870a4",

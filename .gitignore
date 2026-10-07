@@ -11,3 +11,5 @@ logs/
 .build/
 
 .build-hol-current/
+
+.build-hol-compatible/

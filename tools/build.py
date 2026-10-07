@@ -40,7 +40,7 @@ directories = [ROOT/'challenge', ROOT/'experiments', ROOT/'verifier'] + [ROOT/'c
     'compiler/parsing', 'compiler/printing', 'semantics/proofs',
     'compiler/encoders/riscv', 'compiler/backend/riscv', 'compiler/backend/semantics',
     'translator/monadic/monad_base', 'translator',
-    'compiler/backend/serialiser', 'unverified/reg_alloc', 'pancake/semantics',
+    'compiler/backend/serialiser', 'compiler/backend/gc', 'unverified/reg_alloc', 'pancake/semantics',
     'pancake/proofs', 'compiler/backend/proofs', 'compiler/backend/reg_alloc/proofs',
     'compiler/encoders/riscv/proofs']]
 for directory in directories:

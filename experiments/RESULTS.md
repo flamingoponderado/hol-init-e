@@ -145,3 +145,29 @@ the August checkout predates the September tactic updates. An isolated checkout
 at `7f769972f0acf26df39facd83339c05a66d9ff26` (October 1) is being built to test
 the combination of newer tactics and the previous datatype package. It is an
 unverified compatibility candidate, not a replacement for `tested_hol` yet.
+
+## Bootstrap execution lemmas and toolchain compatibility
+
+`initBootstrapMemoryTheory` passes the normal HOL build. It proves byte reads
+and writes, exact eight-byte copying, preservation of other memory and
+registers, non-failure under alignment/domain premises, and commutation with
+PC updates. The word-result width is explicitly 64 bits, independently of the
+address width in HOL's polymorphic `read_mem_word`.
+
+`initBootstrapLoopTheory` also passes (40 s observed). It takes its five
+instructions directly from `bootstrapBlocks`, computes their encoder lengths
+with cv, and proves the complete assembler-state effect: copied memory, both
+pointers advanced by eight, preserved end pointer/domain/endian/failure flag,
+and the exact back-edge or fall-through PC. This still requires instruction
+installation and RISC-V simulation to obtain the full machine trace.
+
+The October 1 HOL compatibility candidate built successfully. All four
+previously failing theories (`bvl_to_bviProof`, `clos_callProof`, `word_instProof`,
+and `panProps`) now pass unchanged. A full compiler/challenge/semantic-proof
+build is running in `.build-hol-compatible`; `tested_hol` remains unchanged
+until that wider validation succeeds. Missing GC and register-allocation proof
+source directories are now included by the build driver.
+
+The real `verify.py --local` path automatically rebuilt its stale fixed heap
+and rejected the unrelated truth article after preparation. Twenty Python
+verifier tests also pass. No positive baseline Certificate is claimed.

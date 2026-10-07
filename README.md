@@ -127,9 +127,11 @@ See [experiment results](experiments/RESULTS.md) for the compiler results and
 2. Connect compiler correctness to the restricted target and cache-hook
    evaluator, discharging configuration, memory, resource, and non-failure
    premises.
-3. Finish the compiler installation predicate, using the checked bootstrap,
-   native-byte installation, and source-memory agreement.
-4. Prove the complete baseline `Certificate` and export a replayable article.
+3. Prove the complete baseline `Certificate` and export a replayable article.
+
+The full compiler installation predicate (`pan_installed`) is proved for states
+related to the checked bootstrap final state, including native bytes, bitmap
+allocation, startup headers, and MMIO layout.
 
 `cv_compute` replaces concrete evaluation proofs; these semantic obligations
 still require proofs. No admitted theorem fills the gaps. The 56,017-file Lean

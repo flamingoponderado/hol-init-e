@@ -947,3 +947,24 @@ and memory-domain closure/containment.
 The enclosing `pan_installed` witness is still being checked. Native no-install
 simulation, the resource bound, the full challenge Certificate, and positive
 article replay remain outstanding.
+
+
+## Complete native-entry pan_installed
+
+`initBaselineMemoryHeadersTheory` passed a clean build (99 s), connecting the
+five fixed startup headers to the packed native-entry memory without evaluating
+the bootstrap again. `initBaselineMmioLayoutTheory` passed (95 s): `cv_compute`
+checks the exact MMIO entry/exit layout, dispatch indices, and nonwrapping bound.
+
+`initBaselineInstalledTheory` passed a clean build (109 s). For every restricted
+target state related to the fixed bootstrap final assembler state,
+`baseline_pan_installed` proves the complete upstream Pancake installation
+predicate for the auxiliary compiler machine: exact native bytes, 760-byte
+code buffer, 4613 bitmap words, zero extra data words, source memory, ordinary
+and shared domains, startup headers, and MMIO metadata. All exported results
+are closed and tag checked. The bootstrap challenge execution already produces
+a state with the required target relation.
+
+This completes installation. Native no-install simulation between the compiler
+and fixed challenge evaluator, resource bounds, the full challenge Certificate,
+and positive article replay remain outstanding.

@@ -2,7 +2,7 @@
   "kind": "candidate-baseline-rom",
   "certificate": "not_proved",
   "admission": "proved",
-  "native_entry": "0x80000400",
+  "native_entry": "0x80000fec",
   "data_rom": "0x800df000",
   "data_ram": "0xa0020000",
   "data_end": "0xa0029040",
@@ -10,12 +10,14 @@
   "files": {
     "rom.bin": {
       "bytes": 950336,
-      "sha256": "f4a44f26e92b5ddde4fe998e91832a85791824485e3aea6088dc21e9a163c288"
+      "sha256": "ea0df268b27634b513e326c04308171ee8062e802e8e09e9260a2d5cca2417f6"
     },
     "bootstrap.bin": {
       "bytes": 208,
-      "sha256": "75572cb06a064826c46a5167f9b88befca5c4d3306b5067ac5813e89e4c91fc8"
+      "sha256": "f7a4e8368e7d95c1e4a3edb8c39c9acb304cc9d62880af3660ee48508f577019"
     }
   },
-  "admission_theorem": "initBaselineAdmission.baseline_admitted"
+  "admission_theorem": "initBaselineAdmission.baseline_admitted",
+  "native_end": "0x800ddd08",
+  "native_end_theorem": "initBaselineRom.native_ends_at_fixed_buffer"
 }

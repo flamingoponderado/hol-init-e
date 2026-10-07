@@ -722,3 +722,22 @@ The composition and instruction results are closed and tag checked. Applying
 the theorem to the concrete bootstrap requires the stronger assembler trace
 with the FFI-range condition on every edge; the previously proved raw CPU RTC
 alone does not supply that condition.
+
+
+## Correct native placement for the fixed source header
+
+The installation predicate `pan_installed` requires the source header's code
+buffer start to equal native entry plus the exact compiled byte count. The
+fixed challenge source memory contains `0x800ddd08` in that header. The former
+entry `0x80000400` ended the 904,476-byte image at `0x800dd11c`; the earlier
+non-overlap inequality was insufficient for installation.
+
+The candidate native entry is now **`0x80000fec`**, making its end exactly
+`0x800ddd08`. The fixed challenge/source definitions and compiled native bytes
+are unchanged. `initBootstrap`, `initBaselineRom`, and `initBaselineAdmission`
+passed clean rebuilds (31 s, 85 s, and 108 s reported). The new closed,
+tag-checked theorem `native_ends_at_fixed_buffer` proves the required equality.
+The candidate ROM and bootstrap binaries and their manifest hashes were
+regenerated from these checked builds. Dependent execution proofs are being
+rebuilt for this placement; earlier sections reporting `0x80000400` describe
+the previous development layout. The full Certificate remains unproved.

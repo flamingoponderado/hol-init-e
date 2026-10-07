@@ -5,8 +5,9 @@ Ancestors riscvTargetCv initParams
 Libs preamble cv_transLib wordsLib
 val _ = Feedback.set_trace "TheoryPP.include_html_docs" 0;
 val _ = cv_memLib.use_long_names := true;
+(* Place the exact native image so its end matches the fixed source header. *)
 Definition baselineNativePc_def:
-  baselineNativePc : num = 0x80000400
+  baselineNativePc : num = 0x80000fec
 End
 Definition bootDataRom_def:
   bootDataRom : num = 0x800df000
@@ -90,8 +91,8 @@ Proof
   EVAL_TAC
 QED
 Theorem bootstrap_layout:
-  baselineNativePc - initialPc = 1024 /\
-  baselineNativePc + 904476 <= 0x800ddd08 /\
+  baselineNativePc - initialPc = 4076 /\
+  baselineNativePc + 904476 = 0x800ddd08 /\
   0x800de000 <= bootDataRom /\
   bootDataEnd - bootDataRam = 8 * (3 + 4613) /\
   initialPc + 208 < baselineNativePc - 16 * (20 + 2)

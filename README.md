@@ -111,7 +111,7 @@ challenge ROM. Large evaluated theories require substantial memory and time
 to export. Use the tested HOL pin in `provenance.json` for verifier preparation.
 
 The fixed challenge and accelerator regression theories build successfully.
-Six AST importer tests and sixteen verifier tests pass. Strict replay component
+Six AST importer tests and twenty verifier tests pass. Strict replay component
 tests cover valid proofs and forged axioms; the real verifier rejects a valid
 article whose conclusion is merely `T`. No positive full-certificate replay is
 claimed yet.

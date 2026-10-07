@@ -11,7 +11,7 @@
   "challenge/initSourceScript.sml": "f92a8fe5a94e95301017832c816cc5f8387fbeeb136c3d98bf63c3d3fcc14085",
   "challenge/initSubmissionScript.sml": "27770b2af078f5da65e6c6bbbe19cd4fe523304f79802a4a5244fca7a0f59262",
   "challenge/initTargetScript.sml": "1e3748cd24bd6e1e6bd4b340a0b744fb88152f154506300ac09b9dfedd663c6b",
-  "provenance.json": "6347d68ec9411e8dd00a97b0803e2dc0607f9aa7ca92b818d81490701c698c90",
+  "provenance.json": "3ffd0364b551a4c2f796bccf9d77e64ae84c288fdc661dd85b4d2044db6e60d5",
   "source/guest.pp.pnk": "d3cec76f0fd072e943f9be62e201b842317a2aa2adcb51bbd0f5cd9dd74d6016",
   "source/instruction-subset.json": "e467e21324984f38ce71af1fc3a35acf16170dca02c7e464736411fddef4bed8",
   "tools/build.py": "39088273cdf57f61e4ce980df11caf594a355b7059a29f0710db07323c7b369a",

@@ -201,3 +201,41 @@ participant statement or fixed verifier condition was relaxed.
 The compatibility build also passed upstream `riscv_targetProofTheory`
 (349 s observed). `pan_to_targetProofTheory` and the final evaluated artifact
 theories are still running; the recorded tested toolchain has not changed.
+
+## Complete bootstrap assembler-state effect
+
+The full compatibility build at HOL
+`7f769972f0acf26df39facd83339c05a66d9ff26` passed all 230 requested theories,
+including `pan_to_targetProofTheory` (490 s), `riscv_targetProofTheory`
+(349 s), the fixed challenge and replay theories, full compiler computation,
+and `initBaselineRomTheory`. The resulting native bytes, bootstrap bytes,
+and baseline ROM match the checked-in artifact hashes exactly. The copy,
+iteration, and startup theories also passed on this HOL version.
+
+`initBootstrapStoresTheory` proves a factored little-endian byte-memory view
+of `write_mem_word` and `mem_store`, including selected-byte and outside-memory
+lemmas. `initBootstrapSuffixTheory` proves the actual suffix's entry registers,
+entry PC, eight exact header/pointer stores, and non-failure under the two
+explicit writable-range premises. Reducing individual instruction projections
+avoids the large expression expansion caused by unfolding the entire state.
+
+`initBootstrapState.bootstrap_final_effect` composes the entire bootstrap's
+assembler state updates through native entry. It passed the normal build
+(27 s; its suffix ancestor took 66 s). The theorem states the native PC,
+registers 10--13, non-failure, and the exact installed byte-memory function.
+The input PC, little-endian/non-failed input state, and ROM/RAM domain premises
+remain explicit. Instruction installation and RISC-V execution simulation are
+not supplied by this state-update theorem. The complete challenge Certificate
+and positive certificate replay remain unfinished.
+
+The recorded `tested_hol` pin is now the October 1 revision above. The original
+August build cache was preserved locally, and `.build` selects the existing
+compatible cache without relocating its generated loaders. Twenty verifier
+unit tests and six importer tests pass with the updated trusted pin/manifest.
+
+The final suffix and composed-state theories also passed on the new tested
+HOL pin (69 s and 32 s). The fixed verifier heap was rebuilt successfully.
+
+The real-HOL replay regression on this heap loaded all 904,476 submitted
+literal bytes and rejected an unrelated truth theorem at the exact Certificate
+conclusion check. This is a negative boundary test, not a positive certificate.

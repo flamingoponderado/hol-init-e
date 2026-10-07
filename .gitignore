@@ -8,8 +8,10 @@
 *.dumpedheap
 __pycache__/
 logs/
-.build/
+.build
 
 .build-hol-current/
 
 .build-hol-compatible/
+
+.build-hol-august/

@@ -574,3 +574,29 @@ This closes composition of the assembler bootstrap trace. The fixed initial
 challenge machine must still be related to an assembler state satisfying these
 premises. Restricted RISC-V simulation, compiler resource/installation premises,
 and the complete challenge Certificate and positive replay remain outstanding.
+
+
+## Fixed initial assembler state and native entry
+
+`initBaselineInitialTheory` passed a clean build (91 s reported theory time,
+plus ancestor loading). `baselineInitialAsm input` explicitly fixes every
+assembler-state field: zero registers, the challenge's `initialMemory` and
+`programDomain`, initial PC, and RISC-V configuration fields.
+
+- `baseline_bootstrap_domains` discharges all 36,928 source and destination
+  copy-byte memberships and all 40 source-header byte memberships.
+- `baseline_initial_target_relation` relates this assembler state to the fixed
+  challenge `initialState baselineSubmission input` using upstream
+  `target_state_rel`.
+- `baseline_bootstrap_execution` proves the complete assembler-step RTC from
+  that concrete initial state to `bootFinalState`, with no remaining premises.
+- `baseline_native_installed` proves that the exact compiled native bytes are
+  installed in the resulting memory and domain.
+- `baseline_native_entry` proves the native entry PC, registers 10–13, and the
+  absence of assembler failure.
+
+All results are kernel checked, closed, and tag checked. The input remains
+universally quantified. This discharges the concrete initial-state premises
+of the preceding bootstrap trace; lifting the trace to restricted RISC-V and
+`challengeEvaluate`, compiler semantic installation/resource premises, and a
+complete Certificate with positive replay remain outstanding.

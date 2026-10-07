@@ -14,12 +14,12 @@
   "provenance.json": "6347d68ec9411e8dd00a97b0803e2dc0607f9aa7ca92b818d81490701c698c90",
   "source/guest.pp.pnk": "d3cec76f0fd072e943f9be62e201b842317a2aa2adcb51bbd0f5cd9dd74d6016",
   "source/instruction-subset.json": "e467e21324984f38ce71af1fc3a35acf16170dca02c7e464736411fddef4bed8",
-  "tools/build.py": "e2b333845e923368c407f22169c75aa2f1d9e9327a32e719d1586e7c73fd812e",
+  "tools/build.py": "e456ff824c82c028421cfdecb1733ee071a8cc75be41a843cabc9a0631323b0f",
   "tools/import_ast.py": "0de641ca7ff42f54f2e64d928326d8b1c1a28efa3834d93df7332cda561a4506",
   "tools/prepare_verifier.py": "b459e80db20fff8da0dcaf996fc3161d536687d21cc0b410be2aa04cd1c88f3e",
   "verifier/certificateReplayLib.sml": "bd615be35f0dad1f387f5ade3c7d294146fc7e2bf5232b4a5b276a9fdc0870a4",
   "verifier/check.sml": "d109bdefcc3f876886351f1b99161eb9a0f939059590c810fca67eceef7a8bc2",
   "verifier/prepareHeap.sml": "e8bd445c79d4ab4143c87413abe85527ee25d96e77138ea2b01380c1c8daa7fb",
   "verifier/strictReplayLib.sml": "95bade6451c7f5d25e29d92178c7f0b7750aba1a6873d1f30cceca15dcee3a8d",
-  "verifier/verify.py": "52d50ca43d5687b1d3b2af0462cc296f95b34e859649db6fbf4931bede1c11cc"
+  "verifier/verify.py": "2f73df281cf486d0b7125b12384f8d59de88922d695f9bb36bb1d4b83259812e"
 }

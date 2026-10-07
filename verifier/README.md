@@ -3,8 +3,7 @@
 Run from an operator-controlled checkout of the fixed challenge:
 
 ```sh
-python3 tools/prepare_verifier.py --hol /path/to/tested/HOL
-python3 verifier/verify.py /path/to/untrusted-submission --replay
+python3 verifier/verify.py --local /path/to/untrusted-submission --hol /path/to/tested/HOL --progress
 python3 verifier/test_verify.py
 python3 verifier/test_replay.py
 ```
@@ -12,6 +11,16 @@ python3 verifier/test_replay.py
 The operator pins this checkout and dependencies. Participants control only
 `rom.bin`, `claim.json`, and `certificate.art` in a separate submission directory.
 A trust manifest supplied by a participant would not establish trust.
+
+`--local` uses the original init-e invocation style and verifies by default.
+The same command prepares a missing or stale operator heap before replay,
+using `--hol`, `HOLDIR`, or the existing build's HOL path. Submitted files are
+frozen before preparation and are not read again afterward.
+
+`--structural-only` explicitly returns `structural_pass` (exit 0) for a valid
+envelope without claiming a Certificate proof. The legacy positional interface
+still performs preflight unless `--replay` is specified. Compatibility with the
+original `--trusted`, `--work`, and `--hide` options remains to be implemented.
 
 ## Frozen literals and the exact statement
 
@@ -53,7 +62,9 @@ only after the exact theorem check. Defaults are 600 seconds and 32 GiB;
 tested HOL revision in `provenance.json`.
 
 Exit codes: **0** verified; **1** rejected; **2** incomplete/preflight only or
-missing/stale prepared verifier. Without `--replay`, preflight never accepts.
+missing/stale prepared verifier. The positional interface without `--replay` never accepts a proof.
+`--local` selects full replay automatically; explicit `--structural-only` is a
+separate successful envelope check and never returns `verified`.
 
 The fixed proposition and replay path are implemented. A baseline certificate
 article and a positive full-certificate replay remain outstanding. Tests include

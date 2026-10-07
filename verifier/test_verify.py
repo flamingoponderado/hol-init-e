@@ -123,4 +123,36 @@ class BoundaryTests(unittest.TestCase):
             with self.assertRaisesRegex(verify.Rejected, 'pin differs'):
                 verify.check_trusted()
 
+class CommandTests(unittest.TestCase):
+    setUp = BoundaryTests.setUp
+    def test_local_replays_by_default(self):
+        with patch.object(verify, 'check_trusted'), patch.object(verify, 'replay_frozen') as replay, patch('sys.stdout', new_callable=io.StringIO) as output:
+            self.assertEqual(verify.main(['--local', str(self.candidate)]), 0)
+            self.assertEqual(json.loads(output.getvalue())['status'], 'verified')
+            self.assertEqual(replay.call_args.args[0].rom, bytes([255,0,1]))
+
+    def test_structural_only_never_replays(self):
+        with patch.object(verify, 'check_trusted'), patch.object(verify, 'replay_frozen') as replay, patch('sys.stdout', new_callable=io.StringIO) as output:
+            self.assertEqual(verify.main(['--local', str(self.candidate), '--structural-only']), 0)
+            self.assertEqual(json.loads(output.getvalue())['status'], 'structural_pass')
+            replay.assert_not_called()
+
+    def test_missing_heap_prepared_without_rereading_candidate(self):
+        first = True
+        def replay(frozen, *args):
+            nonlocal first
+            if first:
+                first = False
+                (self.candidate/'rom.bin').write_bytes(b'replaced')
+                raise verify.ReplayUnavailable('missing')
+            self.assertEqual(frozen.rom, bytes([255,0,1]))
+        with patch.object(verify, 'check_trusted'), patch.object(verify, 'replay_frozen', side_effect=replay), patch('subprocess.run') as prepare, patch('sys.stdout', new_callable=io.StringIO):
+            self.assertEqual(verify.main(['--local', str(self.candidate), '--hol', '/operator/HOL']), 0)
+            self.assertEqual(prepare.call_args.args[0][-2:], ['--hol','/operator/HOL'])
+
+    def test_failed_proof_does_not_trigger_preparation(self):
+        with patch.object(verify, 'check_trusted'), patch.object(verify, 'replay_frozen', side_effect=verify.Rejected('wrong statement')), patch('subprocess.run') as prepare, patch('sys.stdout', new_callable=io.StringIO):
+            self.assertEqual(verify.main(['--local', str(self.candidate)]), 1)
+            prepare.assert_not_called()
+
 if __name__ == '__main__': unittest.main()

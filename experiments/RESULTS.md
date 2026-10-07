@@ -113,3 +113,35 @@ cache-hook evaluator, wellformedness and configuration/resource premises,
 bootstrap and installation from zero RAM, and a complete replayable article.
 The upstream compiler correctness theorem has explicit installation and resource
 premises; the concrete compiler equality does not discharge them.
+
+## Certificate continuation
+
+The baseline zero-RAM bootstrap in `initBootstrapScript.sml` passes an isolated
+HOL build, including its 208-byte size, instruction and layout checks. The
+native entry is 0x80000400, leaving space for the bootstrap/dispatch slots while
+keeping the larger native output below the fixed source code-buffer headers.
+Encoding and layout facts do not by themselves prove bootstrap execution.
+`initBaselineRom` also passed an isolated build: its 950,336-byte image contains
+the exact native bytes and initialization data at the specified offsets. The
+candidate image is in `artifacts/baseline/`, with no admission or Certificate
+proof claimed.
+
+The build driver now includes upstream Pancake/backend/RISC-V semantic proof
+sources. `pan_to_targetProofTheory` and `riscv_targetProofTheory` are required
+prerequisites for the semantic certificate. The old-toolchain build exposed
+failures in `bvl_to_bviProof`, `clos_callProof`, and `word_instProof`; other dependencies continue
+building. A compatibility test with the newer provenance HOL pin failed earlier
+in `flatLang` (`exp6_size` missing), so that pin has not replaced `tested_hol`.
+The missing register-allocation proof directory has also been added to the
+build search path for the next semantic build.
+
+The single Python entry point now supports `--local`, `--structural-only`,
+`--progress`, and `--hol`, with automatic preparation of the fixed verifier.
+Twenty Python boundary/command tests pass. The complete certificate and the
+remaining original CLI options are still outstanding.
+
+The newer HOL failure coincides with its October 3 datatype-package switch;
+the August checkout predates the September tactic updates. An isolated checkout
+at `7f769972f0acf26df39facd83339c05a66d9ff26` (October 1) is being built to test
+the combination of newer tactics and the previous datatype package. It is an
+unverified compatibility candidate, not a replacement for `tested_hol` yet.

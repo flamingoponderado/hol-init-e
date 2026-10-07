@@ -1,0 +1,20 @@
+{
+  "kind": "candidate-baseline-rom",
+  "certificate": "not_proved",
+  "admission": "not_proved",
+  "native_entry": "0x80000400",
+  "data_rom": "0x800df000",
+  "data_ram": "0xa0020000",
+  "data_end": "0xa0029040",
+  "construction_theory": "initBaselineRom",
+  "files": {
+    "rom.bin": {
+      "bytes": 950336,
+      "sha256": "f4a44f26e92b5ddde4fe998e91832a85791824485e3aea6088dc21e9a163c288"
+    },
+    "bootstrap.bin": {
+      "bytes": 208,
+      "sha256": "75572cb06a064826c46a5167f9b88befca5c4d3306b5067ac5813e89e4c91fc8"
+    }
+  }
+}

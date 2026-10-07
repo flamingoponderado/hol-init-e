@@ -101,7 +101,7 @@ The compiler correctness theorem still needs a bridge to this evaluator.
 ```sh
 python3 tools/build.py --hol /path/to/HOL initArtifactsTheory.uo
 python3 tools/prepare_verifier.py --hol /path/to/HOL
-python3 verifier/verify.py /path/to/submission --replay
+python3 verifier/verify.py --local /path/to/submission --hol /path/to/HOL
 ```
 
 [Checked native artifacts](artifacts/README.md) are included in `artifacts/`.

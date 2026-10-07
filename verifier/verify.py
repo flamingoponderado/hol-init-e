@@ -14,6 +14,7 @@ import stat
 import subprocess
 import resource
 import tempfile
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 ROM_LIMIT = 128 * 1024 * 1024
@@ -195,7 +196,11 @@ def replay_frozen(frozen, timeout=600, memory_gib=32):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('candidate', type=Path)
+    parser.add_argument('candidate', type=Path, nargs='?', help='legacy positional submission directory')
+    parser.add_argument('--local', type=Path, help='submission directory; verify by default, as in init-e')
+    parser.add_argument('--structural-only', action='store_true', help='check the envelope without proving Certificate')
+    parser.add_argument('--progress', action='store_true', help='report verification stages to stderr')
+    parser.add_argument('--hol', type=Path, help='operator HOL checkout for automatic verifier preparation')
     parser.add_argument('--prepare', type=Path, metavar='NEW_DIRECTORY',
         help='write a sanitized snapshot for inspection; this does not verify a proof')
     parser.add_argument('--replay', action='store_true',
@@ -203,16 +208,43 @@ def main(argv=None):
     parser.add_argument('--timeout', type=int, default=600, help='replay wall/CPU limit in seconds')
     parser.add_argument('--memory-gib', type=int, default=32, help='replay address-space limit')
     args = parser.parse_args(argv)
+    if (args.candidate is None) == (args.local is None):
+        parser.error('supply exactly one submission directory, using --local or a positional argument')
+    if args.structural_only and args.replay:
+        parser.error('--structural-only cannot be combined with --replay')
+    candidate = args.local if args.local is not None else args.candidate
+    replay = (args.local is not None or args.replay) and not args.structural_only
+    def progress(message):
+        if args.progress: print(message, file=sys.stderr, flush=True)
     if args.timeout < 1 or args.memory_gib < 1:
         parser.error('replay resource limits must be positive')
     try:
+        progress("Checking the fixed challenge and freezing submission literals")
         check_trusted()
-        frozen = freeze(args.candidate)
+        frozen = freeze(candidate)
         report = frozen.report()
         if args.prepare is not None:
             prepare_snapshot(frozen, args.prepare)
-        if args.replay:
-            replay_frozen(frozen, args.timeout, args.memory_gib)
+        if args.structural_only:
+            print(json.dumps({'status':'structural_pass', **report}))
+            return 0
+        if replay:
+            progress('Replaying the exact fixed Certificate')
+            try:
+                replay_frozen(frozen, args.timeout, args.memory_gib)
+            except ReplayUnavailable:
+                # Only operator-owned tools run here. The candidate was already
+                # frozen and never participates in preparing this trusted heap.
+                stamp = ROOT/'.build/hol-path.txt'
+                hol = args.hol or os.environ.get('HOLDIR') or (
+                    stamp.read_text().strip() if stamp.is_file() else ROOT.parent/'HOL')
+                progress('Preparing the fixed HOL verifier')
+                subprocess.run([sys.executable, str(ROOT/'tools/prepare_verifier.py'),
+                    '--hol', str(hol)], check=True,
+                    stdout=sys.stderr if args.progress else subprocess.DEVNULL,
+                    stderr=sys.stderr if args.progress else subprocess.DEVNULL)
+                progress('Replaying the frozen submission with the prepared verifier')
+                replay_frozen(frozen, args.timeout, args.memory_gib)
             print(json.dumps({'status':'verified', **report}))
             return 0
     except ReplayUnavailable as exc:

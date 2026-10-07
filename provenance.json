@@ -1,0 +1,8 @@
+{
+  "init-e": "1ac86616d6af633f734c1b50b2d65bcc267d4ae5",
+  "cakeml": "e2b88323e632a5353c142ceef1af4bab77a8f928",
+  "HOL": "d57edec8a4a772f8bcc163fb4edd2126e1696f0f",
+  "ast_sha256": "9e936dce0c7d51f1a9b064cacc63a2207a0e44f515b2c9fbba97f15850d2e702",
+  "tested_hol": "a390cbabd3a4521bab4ee20281e3e42933a8a3ae",
+  "flapjack": "034bb5a1ed0b757082768d5406206bd2f8e31b7c"
+}

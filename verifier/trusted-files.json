@@ -1,0 +1,12 @@
+{
+  ".gitmodules": "387979a13a780ed59b6cfe2be2327b688d4d121d514d2439b4ddfe5e0624a04c",
+  "challenge/initGuestScript.sml": "899eaef2c9c5357728fd36037bdab87d3db1e75d435ba87b9c4c7ff8d86039ce",
+  "challenge/initParamsScript.sml": "938588bab5bd587d782314e227a4fe4949fe4104acf443118fc5ae20d85cb697",
+  "challenge/initTargetScript.sml": "1e3748cd24bd6e1e6bd4b340a0b744fb88152f154506300ac09b9dfedd663c6b",
+  "provenance.json": "6347d68ec9411e8dd00a97b0803e2dc0607f9aa7ca92b818d81490701c698c90",
+  "source/guest.pp.pnk": "d3cec76f0fd072e943f9be62e201b842317a2aa2adcb51bbd0f5cd9dd74d6016",
+  "source/instruction-subset.json": "e467e21324984f38ce71af1fc3a35acf16170dca02c7e464736411fddef4bed8",
+  "tools/build.py": "572910b2f6a98dc09a262e4d19959a3f4a10c096e44b00e3510b4aad76c2f973",
+  "tools/import_ast.py": "0de641ca7ff42f54f2e64d928326d8b1c1a28efa3834d93df7332cda561a4506",
+  "verifier/verify.py": "022671d860ad266162c8517a4caaae48fdf7d516e13b7f5a23d666cebe988b46"
+}

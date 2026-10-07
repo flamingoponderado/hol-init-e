@@ -1,5 +1,5 @@
 Theory panSimplifyCv
-Ancestors pan_simp cv_std
+Ancestors pan_simp backend_64_cv
 Libs preamble cv_transLib
 
 val _ = cv_memLib.use_long_names := true;

@@ -1,4 +1,5 @@
 import hashlib
+import io
 import json
 from pathlib import Path
 import tempfile
@@ -50,6 +51,47 @@ class BoundaryTests(unittest.TestCase):
         (self.candidate/'certificate.art').unlink()
         (self.candidate/'certificate.art').mkdir()
         with self.assertRaises((OSError, verify.Rejected)): verify.preflight(self.candidate)
+
+    def test_frozen_literals_survive_candidate_replacement(self):
+        frozen = verify.freeze(self.candidate)
+        (self.candidate/'rom.bin').write_bytes(b'changed')
+        (self.candidate/'claim.json').write_text('{"K":123}')
+        (self.candidate/'certificate.art').write_bytes(b'changed proof')
+        stream = io.StringIO()
+        frozen.write_literals(stream)
+        self.assertIn('255w;0w;1w', stream.getvalue())
+        self.assertIn('submittedScore = initParams$Infinity', stream.getvalue())
+        self.assertEqual(frozen.proof, b'untrusted proof bytes')
+        self.assertEqual(frozen.report()['rom_sha256'], hashlib.sha256(bytes([255,0,1])).hexdigest())
+
+    def test_score_is_regenerated_as_literal(self):
+        (self.candidate/'claim.json').write_text(' { "K" : 123 } ')
+        stream = io.StringIO()
+        verify.freeze(self.candidate).write_literals(stream)
+        self.assertIn('submittedScore = initParams$Finite 123', stream.getvalue())
+
+    def test_score_syntax_injection_rejected(self):
+        (self.candidate/'claim.json').write_text(json.dumps({'K':'0; new_axiom "oops"'}))
+        with self.assertRaises(verify.Rejected): verify.freeze(self.candidate)
+
+    def test_every_byte_is_literal_data(self):
+        (self.candidate/'rom.bin').write_bytes(bytes(range(256)))
+        stream = io.StringIO()
+        verify.freeze(self.candidate).write_literals(stream)
+        body = stream.getvalue().split('= [', 1)[1].split(']', 1)[0]
+        self.assertEqual([int(x.strip()[:-1]) for x in body.split(';')], list(range(256)))
+
+    def test_prepared_snapshot_copies_only_frozen_values(self):
+        frozen = verify.freeze(self.candidate)
+        (self.candidate/'rom.bin').write_bytes(b'replacement')
+        destination = self.candidate/'prepared'
+        verify.prepare_snapshot(frozen, destination)
+        self.assertEqual((destination/'rom.bin').read_bytes(), frozen.rom)
+        self.assertEqual((destination/'certificate.art').read_bytes(), frozen.proof)
+        self.assertEqual(json.loads((destination/'claim.json').read_text()), {'K':'infinity'})
+        self.assertIn('255w;0w;1w', (destination/'submissionLiteralsScript.sml').read_text())
+        self.assertEqual(destination.stat().st_mode & 0o777, 0o700)
+        with self.assertRaises(FileExistsError): verify.prepare_snapshot(frozen, destination)
 
     def trusted_tree(self):
         root = self.candidate/'trusted'

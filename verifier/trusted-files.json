@@ -1,12 +1,25 @@
 {
   ".gitmodules": "387979a13a780ed59b6cfe2be2327b688d4d121d514d2439b4ddfe5e0624a04c",
+  "challenge/initAccelScript.sml": "dcdf718b95866a94b628883a41d30450500c8c7c3fca316945786f6fb5ab8b44",
+  "challenge/initChallengeScript.sml": "cd038a1f025fc555bb6a8478c6ad64dde4b07ec1316d1762a8ca750e47551ebe",
+  "challenge/initGasScript.sml": "5cd499a9f14cab0bcebd4fde00c5fbe60a3a2c58d2d3f534336ab548bd53ad51",
   "challenge/initGuestScript.sml": "899eaef2c9c5357728fd36037bdab87d3db1e75d435ba87b9c4c7ff8d86039ce",
+  "challenge/initHostScript.sml": "f30cf484860dcba64f36f8e5102b54425fdc539622fc194fffd928f6890e4633",
+  "challenge/initMachineScript.sml": "4ac17807fe095504646540344b21d254d11543355eda22b4ed0fd63817bed318",
+  "challenge/initObservationsScript.sml": "e58bd6336ec6d5810a4853cac5837902d9fc50602fe217eadb0c6292577be9c2",
   "challenge/initParamsScript.sml": "938588bab5bd587d782314e227a4fe4949fe4104acf443118fc5ae20d85cb697",
+  "challenge/initSourceScript.sml": "f92a8fe5a94e95301017832c816cc5f8387fbeeb136c3d98bf63c3d3fcc14085",
+  "challenge/initSubmissionScript.sml": "27770b2af078f5da65e6c6bbbe19cd4fe523304f79802a4a5244fca7a0f59262",
   "challenge/initTargetScript.sml": "1e3748cd24bd6e1e6bd4b340a0b744fb88152f154506300ac09b9dfedd663c6b",
   "provenance.json": "6347d68ec9411e8dd00a97b0803e2dc0607f9aa7ca92b818d81490701c698c90",
   "source/guest.pp.pnk": "d3cec76f0fd072e943f9be62e201b842317a2aa2adcb51bbd0f5cd9dd74d6016",
   "source/instruction-subset.json": "e467e21324984f38ce71af1fc3a35acf16170dca02c7e464736411fddef4bed8",
-  "tools/build.py": "572910b2f6a98dc09a262e4d19959a3f4a10c096e44b00e3510b4aad76c2f973",
+  "tools/build.py": "e2b333845e923368c407f22169c75aa2f1d9e9327a32e719d1586e7c73fd812e",
   "tools/import_ast.py": "0de641ca7ff42f54f2e64d928326d8b1c1a28efa3834d93df7332cda561a4506",
-  "verifier/verify.py": "022671d860ad266162c8517a4caaae48fdf7d516e13b7f5a23d666cebe988b46"
+  "tools/prepare_verifier.py": "b459e80db20fff8da0dcaf996fc3161d536687d21cc0b410be2aa04cd1c88f3e",
+  "verifier/certificateReplayLib.sml": "bd615be35f0dad1f387f5ade3c7d294146fc7e2bf5232b4a5b276a9fdc0870a4",
+  "verifier/check.sml": "d109bdefcc3f876886351f1b99161eb9a0f939059590c810fca67eceef7a8bc2",
+  "verifier/prepareHeap.sml": "e8bd445c79d4ab4143c87413abe85527ee25d96e77138ea2b01380c1c8daa7fb",
+  "verifier/strictReplayLib.sml": "95bade6451c7f5d25e29d92178c7f0b7750aba1a6873d1f30cceca15dcee3a8d",
+  "verifier/verify.py": "52d50ca43d5687b1d3b2af0462cc296f95b34e859649db6fbf4931bede1c11cc"
 }

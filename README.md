@@ -7,8 +7,10 @@ CakeML's Pancake compiler supplies one route to a baseline submission.
 
 The experiment replaces generated Lean computation certificates with HOL4
 `cv_compute` evaluations. The generated Lean proof tree is not imported.
-This repository does **not yet contain a complete challenge certificate or
-a proved source-to-bytecode compilation**.
+HOL has proved that the full top-level Pancake compilation returns the
+904,476-byte native RISC-V artifact.
+**A complete baseline challenge certificate is not yet proved.** Native code
+alone is not a bootstrapped challenge submission.
 
 ## Fixed challenge and untrusted submissions
 
@@ -23,9 +25,9 @@ python3 verifier/test_verify.py
 ```
 
 The verifier checks trusted-file hashes and the CakeML pin before inspecting
-candidate files. It never executes candidate ML. It is deliberately fail closed:
-preflight success returns **incomplete (exit 2)**, not verified. Full independent
-proof replay and the fixed Certificate still need implementation. See
+candidate files. It never executes candidate ML. Preflight success returns **incomplete (exit 2)**. With `--replay`, the verifier
+uses an operator-prepared HOL heap and accepts only a closed proof of the exact
+fixed `initChallenge.Certificate submittedBytes submittedScore`. See
 [the verifier boundary](verifier/README.md) and [submission format](submission/README.md).
 
 ## Included
@@ -39,8 +41,15 @@ proof replay and the fixed Certificate still need implementation. See
 - A restricted instruction decoder and machine step. Unsupported fetched
   encodings become `UnknownInstruction`; compressed decoding always does so.
   There is no blanket requirement that every byte in a submitted ROM be code.
-- A full-guest `pan_simp` pass experiment producing a kernel-checked equality
-  by `cv_eval_pat`, with the result retained as a named constant.
+- The declared gas-limit reader and covered-outcome/output comparison rules.
+- Fixed source state, machine startup, framing, shared memory, accelerator
+  oracle, submission admission, and challenge certificate definitions.
+- Frozen submission snapshots, regenerated ROM/score literals, and a strict
+  proof-replay component with tampering tests.
+- All Pancake frontend passes and the RISC-V backend translated to cv equations.
+  Native register allocation supplies an untrusted hint checked by HOL.
+- Resource-limited certificate replay from frozen bytes and sanitized score
+  literals, with exact conclusion, assumption, and theorem-tag checks.
 
 ## Build
 
@@ -84,39 +93,41 @@ The target restriction applies to every participant, regardless of compiler.
 An instruction check on baseline compiler output is not a replacement for it.
 The current restricted step reuses upstream L3 semantics. Agreement with the
 pinned reduced Lean decoder and step remains to be proved; the challenge's
-initial state, oracle hooks, and evaluator must also be connected to this step.
+initial state and oracle hooks are fixed in `initMachine` and `initSubmission`.
+The compiler correctness theorem still needs a bridge to this evaluator.
 
-## Checked so far
+## Reproduce the compiler and verifier
 
-The complete 928-declaration guest is accepted by HOL4. The budget/layout proofs,
-restricted-target lemmas and raw instruction decoding tests pass. The full-guest
-simplifier experiment proves:
-
-```text
-|- LENGTH guestAst = 928
-|- pan_simp$compile_prog guestAst = simplified_guest
+```sh
+python3 tools/build.py --hol /path/to/HOL initArtifactsTheory.uo
+python3 tools/prepare_verifier.py --hol /path/to/HOL
+python3 verifier/verify.py /path/to/submission --replay
 ```
 
-The experiment checks that these results have no assumptions or admitted-proof
-tags. It normalizes record literals and boolean encodings before registering
-the guest with `cv_compute`. It does not import generated Lean proof modules.
-The tested HOL revision is recorded separately as `tested_hol` in provenance.
+[Checked native artifacts](artifacts/README.md) are included in `artifacts/`.
+The compiler target writes `compiled.bin`, `bitmaps.txt`, and `backend.conf`
+under ignored `.build/`. These are native compiler artifacts, not an admitted
+challenge ROM. Large evaluated theories require substantial memory and time
+to export. Use the tested HOL pin in `provenance.json` for verifier preparation.
 
-See [experiment results and the reproduced next-stage blocker](experiments/RESULTS.md).
+The fixed challenge and accelerator regression theories build successfully.
+Six AST importer tests and sixteen verifier tests pass. Strict replay component
+tests cover valid proofs and forged axioms; the real verifier rejects a valid
+article whose conclusion is merely `T`. No positive full-certificate replay is
+claimed yet.
 
-## What remains
+See [experiment results](experiments/RESULTS.md) for the compiler results and
+[the verifier boundary](verifier/README.md) for statement binding.
 
-1. Translate the remaining Pancake passes and the RISC-V backend to cv
-   equations. CakeML has backend specialization for RISC-V, but its ready-made
-   cv compiler drivers target x64, ARM8, and AG32. Measure full-guest
-   compilation and prove an equality to a separately recorded byte artifact.
-2. Instantiate compiler correctness for the restricted target. Reusing
-   `pan_to_target_compile_semantics` requires its configuration, installation,
-   memory, resource, and non-failure premises, plus a restricted-step bridge.
-3. Port the fixed initial state, source semantics, shared-memory and accelerator
-   FFI, declared-gas decoder, observations, and submission admission rules.
-4. Prove bootstrap/installation and the complete challenge certificate. The
-   compiler equality alone does not prove termination or a finite score.
+## Remaining certificate obligations
 
-`cv_compute` can replace concrete evaluation proofs; it cannot replace these
-semantic obligations. No admitted theorem is used to fill the gaps.
+1. Prove agreement with the pinned reduced Lean decoder and machine step.
+2. Connect compiler correctness to the restricted target and cache-hook
+   evaluator, discharging configuration, memory, resource, and non-failure
+   premises.
+3. Construct and prove the zero-RAM bootstrap and native-code/data installation.
+4. Prove the complete baseline `Certificate` and export a replayable article.
+
+`cv_compute` replaces concrete evaluation proofs; these semantic obligations
+still require proofs. No admitted theorem fills the gaps. The 56,017-file Lean
+submission proof tree is neither copied nor built.

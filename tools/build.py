@@ -11,7 +11,12 @@ p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--hol', type=Path, default=Path(os.environ.get('HOLDIR', ROOT.parent/'HOL')))
 p.add_argument('-j', '--jobs', type=int, default=4)
 p.add_argument('targets', nargs='*', default=['initParamsTheory.uo', 'initGuestTheory.uo',
-                                         'initSimplifyTheory.uo', 'initTargetTheory.uo'])
+                                         'initSimplifyTheory.uo', 'initTargetTheory.uo',
+                                         'initGasTheory.uo', 'initObservationsTheory.uo',
+                                         'initHostTheory.uo', 'initSourceTheory.uo',
+                                         'initStructsTheory.uo', 'initGlobalsTheory.uo',
+                                         'initChallengeTheory.uo', 'initAccelChecksTheory.uo',
+                                         'replayChecksTheory.uo', 'certificateReplayLib.uo'])
 a = p.parse_args()
 hol = a.hol.resolve()
 if not (hol/'bin/Holmake').is_file():
@@ -28,8 +33,13 @@ stamp = build/'hol-path.txt'
 if stamp.exists() and stamp.read_text() != str(hol):
     p.error('this .build belongs to another HOL checkout; remove .build before switching')
 stamp.write_text(str(hol))
-directories = [ROOT/'challenge', ROOT/'experiments'] + [ROOT/'cakeml'/x for x in [
-    'misc', 'basis/pure', 'compiler/encoders/asm', 'compiler/backend', 'semantics', 'pancake']]
+directories = [ROOT/'challenge', ROOT/'experiments', ROOT/'verifier'] + [ROOT/'cakeml'/x for x in [
+    'misc', 'basis/pure', 'compiler/encoders/asm', 'compiler/backend', 'semantics', 'semantics/ffi', 'pancake', 'cv_translator',
+    'compiler/backend/cv_compute', 'compiler/backend/reg_alloc', 'compiler/backend/pattern_matching', 'compiler/inference', 'compiler/inference/proofs',
+    'compiler/parsing', 'compiler/printing', 'semantics/proofs',
+    'compiler/encoders/riscv', 'compiler/backend/riscv', 'compiler/backend/semantics',
+    'translator/monadic/monad_base', 'translator',
+    'compiler/backend/serialiser', 'unverified/reg_alloc', 'pancake/semantics']]
 for directory in directories:
     for source in directory.iterdir():
         if source.suffix not in {'.sml', '.sig'} or 'Theory.' in source.name: continue
@@ -41,6 +51,13 @@ for directory in directories:
 cmd = [str(hol/'bin/Holmake'), '--no-project', '--no_hmakefile', '--no_preexecs',
        '--rebuild_deps', '--keep-going', '-j', str(a.jobs)]
 for directory in ['examples/pl-semantics/lprefix_lub',
-    'examples/machine-code/hoare-triple', 'examples/l3-machine-code/riscv/model']:
+    'examples/machine-code/hoare-triple', 'examples/l3-machine-code/riscv/model',
+    'examples/l3-machine-code/riscv/step',
+    'examples/formal-languages/regular', 'examples/machine-code/multiword',
+    'examples/formal-languages/context-free', 'examples/formal-languages',
+    'examples/data-structures/balanced_bst', 'examples/algorithms',
+    'examples/algorithms/unification/triangular/first-order',
+    'examples/algorithms/unification/triangular/first-order/compilation',
+    'src/transfer/examples', 'src/search']:
     cmd += ['-I', str(hol/directory)]
 raise SystemExit(subprocess.call(cmd+a.targets, cwd=build))

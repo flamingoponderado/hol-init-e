@@ -1,0 +1,28 @@
+{
+  "kind": "native-pancake-compiler-output",
+  "challenge_certificate": "not_proved",
+  "theorem": "initArtifacts.exact_guest_riscv_compilation",
+  "bitmap_words": 4613,
+  "dependencies": {
+    "init-e": "1ac86616d6af633f734c1b50b2d65bcc267d4ae5",
+    "cakeml": "e2b88323e632a5353c142ceef1af4bab77a8f928",
+    "HOL": "d57edec8a4a772f8bcc163fb4edd2126e1696f0f",
+    "ast_sha256": "9e936dce0c7d51f1a9b064cacc63a2207a0e44f515b2c9fbba97f15850d2e702",
+    "tested_hol": "a390cbabd3a4521bab4ee20281e3e42933a8a3ae",
+    "flapjack": "034bb5a1ed0b757082768d5406206bd2f8e31b7c"
+  },
+  "files": {
+    "native-riscv.bin": {
+      "bytes": 904476,
+      "sha256": "4403ff7d9c7b663ba20a4e9c961547b2548530a56b15f238248886763009489e"
+    },
+    "bitmaps.txt": {
+      "bytes": 25669,
+      "sha256": "534d0a3d57e3b094857d41e73ffd17af34d51cb6d09cd3b956309b83832f888a"
+    },
+    "backend.conf": {
+      "bytes": 174558,
+      "sha256": "2952aff42ac99ca931d3eacfe5dd050b1c9dad075b6592aee4438ca9bbc84459"
+    }
+  }
+}

@@ -324,7 +324,34 @@ python3 tools/build.py --hol /path/to/tested-HOL initSourceAllocationTheory.uo
 ```
 
 The results discharge specific source-side premises of the compiler theorem.
-They do not establish equivalence between the original and reordered declaration
-semantics, target installation/execution, sufficient runtime stack/heap bounds,
-or the final challenge Certificate. A positive full certificate replay remains
+Target installation/execution, sufficient runtime stack/heap bounds,
+and the final challenge Certificate remain separate obligations. A positive full certificate replay remains
 outstanding.
+
+
+## Compiler source order preserves challenge behavior
+
+`panMainOrderTheory` passed (7 s). A function declaration commutes with a
+neighboring declaration when the neighbor does not define the same function
+name. This covers globals and exceptions as well as functions; global
+initializer evaluation is independent of the function map. Induction lifts the
+swap to a declaration prefix. Named-structure processing is also preserved.
+
+`initSourceOrderTheory` passed (59 s). Checked evaluation shows the fixed AST
+ends with `main` and the prefix contains no other function of that name.
+Instantiating the generic theorem proves, for any initial state and start name,
+that `prepared_guest` and `guestAst` have equal declaration semantics. In
+particular:
+
+```text
+|- semantics_decls (sourceInitialState input) «main» prepared_guest =
+   sourceBehaviour input
+```
+
+This closes the source-order gap between the compiler correctness theorem and
+the fixed challenge. All exported semantic results are checked for hypotheses
+and untrusted theorem tags. The challenge definitions are unchanged.
+
+```sh
+python3 tools/build.py --hol /path/to/tested-HOL initSourceOrderTheory.uo
+```

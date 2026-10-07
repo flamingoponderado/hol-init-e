@@ -648,3 +648,26 @@ whole-ROM instruction scan.
 assembler-step RTC and an initial target-state relation to finite target-next
 execution with the final target-state relation. This generic result does not
 by itself establish the additional checks of `challengeEvaluate`.
+
+
+## Restricted CPU bootstrap execution from the fixed initial state
+
+`initBaselineRestrictedExecutionTheory` passed a clean build (96 s reported
+including theory loading). For every input, `baseline_restricted_execution`
+proves a finite RTC of `restrictedTarget.next` from
+`initialState baselineSubmission input` to a state related to the complete
+assembler bootstrap result.
+
+`baseline_restricted_native_entry` exposes the resulting machine facts:
+
+- `riscv_ok final`;
+- native entry PC `0x80000400`;
+- registers 10–13 equal the native entry, source base, stack start, and RAM end;
+- all exact compiled native bytes installed in `final.MEM8` under the fixed
+  `programDomain baselineSubmission`.
+
+Both execution results are closed and tag checked. This is execution of the
+restricted CPU from the challenge's actual initial state, including zero RAM.
+It does not yet prove execution by `challengeEvaluate`, whose program-domain,
+FFI, and memory-interference checks must also be connected. The full baseline
+Certificate and positive article replay are still not proved.

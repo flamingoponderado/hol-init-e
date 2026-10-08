@@ -54,6 +54,8 @@ End
 val cv_facts = [candidateCv_def,candidateCvOuter_def];
 val _ = strictReplayLib.resolve cv_facts empty
   ([],``candidateCvOuter (cv$Num 3) = cv$Num 17``);
+val _ = strictReplayLib.resolve [CONJ candidateCv_def candidateCvOuter_def] empty
+  ([],``candidateCvOuter (cv$Num 3) = cv$Num 17``);
 val non_code = prove
   (``candidateCv x = if T then candidateCv x else cv$Num 0``, simp []);
 val _ = strictReplayLib.resolve (non_code::cv_facts) empty

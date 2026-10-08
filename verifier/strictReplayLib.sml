@@ -81,7 +81,8 @@ fun raw_compute facts c =
                 then () else raise Fail "not a code equation";
       in SOME (f,(th,r)) end
       handle HOL_ERR _ => NONE | Fail _ => NONE;
-    val equations = List.mapPartial equation facts;
+    val equations = List.mapPartial equation
+      (List.concat (map (CONJUNCTS o SPEC_ALL o checked) facts));
     fun collect [] seen result = result
       | collect (f::todo) seen result =
           if List.exists (aconv f) seen then collect todo seen result
@@ -174,10 +175,12 @@ fun resolve_fallback trusted proved (hs,c) =
         | NONE => (decode_literal facts c
                    handle HOL_ERR _ => raw_compute facts c
                         | Fail _ => raw_compute facts c)
-                 handle HOL_ERR _ =>
-                   logical_compute c
-                      | Fail _ =>
-                   logical_compute c
+                 handle e as HOL_ERR _ =>
+                   if is_eq c andalso type_of(lhs c) = cvSyntax.cv
+                   then raise e else logical_compute c
+                      | e as Fail _ =>
+                   if is_eq c andalso type_of(lhs c) = cvSyntax.cv
+                   then raise e else logical_compute c
       in if same_sequent (hs,c) th then checked th
          else reject "computation proved a different statement" end
   end

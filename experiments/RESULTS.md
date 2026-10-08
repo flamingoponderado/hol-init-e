@@ -1223,3 +1223,40 @@ the complete allocation-literal conversion. The compact refinement article also
 exports successfully after recording configuration unfolding before fixed
 `EVAL` requests. Independent replay of the complete dependency chain is still
 outstanding.
+
+
+## Independent compiler replay through source preparation
+
+A fresh standard-kernel process replayed the first five compiler articles in
+sequence: `initSimplify` (7,565 theorems), `initStructs` (92), `initGlobals`
+(128), `initCrep` (357), and `initPrepared` (2,575). This uses the previously
+checked 115,526,261-byte simplification article and the newer following
+articles. The process receives the fixed library and preceding replayed facts;
+it does not import the built baseline theories.
+
+This exposed symbolic normalization requests for pair reconstruction and
+`TAILREC`. The reader now resolves these from proved logical/library facts and
+rejects symbolic requests in its ordinary evaluation fallback. Small logical
+requests are handled before the full library search. The real single-script
+CLI regression still loads all 904,476 frozen native bytes and rejects an
+unrelated proof at the exact Certificate-conclusion check.
+
+The following loop compiler pass exposed an overly broad filter that excluded
+all functions in theory `cv`, including the nonprimitive `cv_exp`. The filter
+now excludes exactly the kernel CV primitives and accepts checked executable
+equations for other functions. Positive and false-result exponentiation
+regressions pass. A focused loop-pass diagnostic then replayed 147 theorems;
+that diagnostic imports built predecessor theories and is not evidence of
+independent full-chain acceptance.
+
+The challenge bootstrap suffix export also completed: its compact article is
+158,412,578 bytes. Export of the remaining dependency chain and independent
+verification of the complete Certificate package are still unfinished.
+
+The word compiler additionally requires mutually recursive CV equations stored
+as a conjunction. The reader now extracts the checked conjuncts before selecting
+code equations. Direct word compilation from those equations succeeds, and the
+independent exporter regression covers conjunctive code facts. Failed CV
+requests no longer fall through to ordinary evaluation; a missing equation now
+fails directly instead of causing an expensive fallback. Full word-article and
+later compiler-article checks are still required.

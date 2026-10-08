@@ -117,8 +117,9 @@ fun bool_taut c =
       else if aconv tm T orelse aconv tm F then true
       else let val (f,args) = strip_comb tm
                val {Thy,Name,...} = dest_thy_const f
-           in Thy = "bool" andalso
-              List.exists (fn n => n = Name) ["=","==>","/\\","\\/","~"] andalso
+           in ((Thy = "min" andalso (Name = "=" orelse Name = "==>")) orelse
+               (Thy = "bool" andalso
+                List.exists (fn n => n = Name) ["/\\","\\/","~"])) andalso
               List.all propositional args end
            handle HOL_ERR _ => false;
     val _ = if propositional body then () else reject "not a propositional request";

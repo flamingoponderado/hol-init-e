@@ -89,6 +89,8 @@ val _ = must_reject "forged byte literal definition"
 
 val _ = strictReplayLib.resolve [] empty
   ([],``(a <=> b) ==> (b ==> (c <=> d)) ==> ((a ==> c) <=> (b ==> d))``);
+val _ = strictReplayLib.bool_taut
+  ``(a <=> b) ==> (b ==> (c <=> d)) ==> ((a ==> c) <=> (b ==> d))``;
 val _ = must_reject "false propositional request"
   (fn () => (strictReplayLib.bool_taut ``a /\ ~a``; ()));
 val _ = strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 3``;

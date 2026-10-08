@@ -22,6 +22,8 @@
   "native_end_theorem": "initBaselineRom.native_ends_at_fixed_buffer",
   "certificate_theorem": "initBaselineCertificate.baseline_certificate",
   "score": "infinity",
-  "article_replay": "not_completed",
-  "tested_hol": "7f769972f0acf26df39facd83339c05a66d9ff26"
+  "article_replay": "verified",
+  "tested_hol": "7f769972f0acf26df39facd83339c05a66d9ff26",
+  "verification_report": "verification.json",
+  "proof_sha256": "aad8e2e6ec4b59cf36e922c8fdcbaaa0bf89c4c3eff91bc97aef5b3f6e0cd98b"
 }

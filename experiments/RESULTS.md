@@ -1337,3 +1337,254 @@ unresolved request. It uses the same frozen input and standard kernel, without
 adding facts or changing the acceptance criterion. The production reader also
 attaches the article line number to `Fail` exceptions, as it already did for
 `HOL_ERR`, so subsequent rejections can be located in the concatenated package.
+
+
+### Symbolic quantifier request repaired; second full run pending
+
+The diagnostic replay reached `initStackInput`, immediately after the definition
+`cv_optimized_colours`, then rejected the request
+`P \/ (!x. Q x) <=> !x. P \/ Q x`. It exited after 905.4 seconds with
+57,249,036 KiB peak RSS. The compiler prefix was therefore traversed again, but
+full Certificate acceptance was not established.
+
+The strict simplifier now reconstructs this request using HOL's proved
+`RIGHT_FORALL_OR_THM`. An independent focused check verified its exact sequent,
+empty hypotheses, and acceptable proof tags. The verifier heap was rebuilt
+with matching source and heap hashes; the negative replay regression and all
+25 Python verifier tests passed. A production run using the same complete
+package and fresh private work directory is in progress. A passing full run
+is still required before publishing the requested verification tag.
+
+
+### Bootstrap parity request repaired
+
+The second full Python run rejected after 1,579.4 seconds, with peak child RSS
+82,048,496 KiB. The reader's line-number diagnostic located the unresolved
+request at concatenated article line 116,435,794: `initBootstrap` local line
+421,132. Replay had passed the earlier `initStackInput` quantifier request.
+
+A focused replay using only the fixed proof library identified the request as
+`!n. ODD (BIT1 n) <=> T`. Adding the proved `numeral_evenodd` theorem to the
+logical simplifier lets the complete bootstrap article replay independently:
+403 checked exported theorems. Existing replay regression checks, including
+true and false symbolic parity cases and the preceding quantifier cases, pass.
+The full package still requires a successful production run before tagging.
+
+
+### Third full run: decoded configuration and parallel diagnostics
+
+The third production verification rejected after 2,357.1 seconds with peak
+child RSS 82,066,220 KiB. Its unresolved request was at concatenated article
+line 131,092,019 (`initDecodedConfig`, local line 2,163,390):
+`0 < n ==> ((m MOD n < n) <=> T)`.
+
+The resolver now tries a kernel-checked Boolean normalization for small requests
+before looking up the normalized statement in the checked theorem library. A
+matched theorem is transported back through the conversion, then checked against
+the exact original sequent. Regression tests prove the guarded remainder bound
+and reject both removal of its positive-divisor premise and a false conclusion.
+All strict replay component checks pass.
+
+Focused configuration replay passed this request and exposed a further record
+representation conversion at local article line 3,851,987. Work is shifting to
+bounded parallel per-article diagnostics to collect remaining failures before
+another complete replay. These diagnostics use built predecessor theories and
+do not establish full package acceptance. The final fixed-library-only Python
+verification and the reduced Lean decoder/step agreement remain outstanding.
+
+
+### Parallel diagnostics and bounded theorem indexes
+
+The first parallel batch passed `initBaselineInstalled`, `initCompiledMetadata`,
+and `initBaselineAdmission` against imported checked predecessor theories. These
+are diagnostic passes, not independent full-package acceptance. The final
+Certificate worker was terminated by SIGTERM during indexing; the refinement
+worker explicitly reported HOL heap exhaustion before article replay. Neither
+is a theorem rejection. High memory use and SIGTERM are consistent with earlyoom,
+but an earlyoom log confirming the termination was not available.
+
+Fast theorem indexes now omit conclusions larger than 4,096 term nodes. All
+trusted facts remain available through the existing exact/instance fallback.
+The regression suite verifies lookup of a large checked fact through that
+fallback and continues to reject false and premise-free requests.
+
+The configuration conversion repair uses checked word-zero/word-one identities
+and the proved lower bounds on `dimword`. This covers both residual word
+conversions and conditional expressions produced by different evaluator setups.
+All strict replay component regressions pass with these changes. A new article
+audit snapshots the repaired sources. HOL concurrency is capped at three at the
+user's request; the old suffix worker continues while two new workers audit
+configuration, Certificate, refinement, and the remaining articles.
+
+The source manifest and production heap must be refreshed after the diagnostic
+repairs settle, before the next full Python verification. No successful full
+verification or verification release tag is claimed.
+
+
+The guarded per-article audit now passes both `initDecodedConfig` and
+`initBaselineCertificate` with the bounded-index and word-conversion repairs.
+The configuration pass covers the complete article that previously failed on
+Boolean theorem normalization and polymorphic word conversion. The Certificate
+pass checks eight exported theorems using built predecessors. Neither imports
+its target theory, and the diagnostic evaluator guard rejects mapped candidate
+predecessor constants. These remain local diagnostics rather than an independent
+replay of the full package. The redundant queued configuration retry was
+cancelled after checking that the successful audit's source hash matches the
+current strict replay library.
+
+
+### Semantic agreement investigation
+
+Reduced Lean decoder/step agreement remains **unproved**. Read-only inspection
+of the pinned Flapjack sources identified the following concrete proof path;
+none of these observations changes the fixed challenge or establishes a new
+equivalence theorem.
+
+The reduced `Defs/Decode.lean` contains 163 Boolean conditional nodes. The
+pinned reduction manifest records replacement of unsupported instruction leaves
+by `UnknownInstruction`, retaining the original predicates. Its remaining
+operations are bit-tuple destructuring,
+Boolean negation/conjunction, typed lists and tuples, instruction constructors,
+`holV2w`, and the three immediate assembly helpers. A next deliverable is a typed
+decoder contract with universal equations checked separately in HOL and Lean:
+`restricted_decode w = decodeContract w` and
+`Decode w = decodeContractLean w`. The pinned elaborated HOL term export and
+renderer can supply the tree; a Lean kernel proof against the actual pinned
+definition must validate the generated expression. Structural conditional
+rewriting should be tried before Boolean decision procedures. Such equations
+still require the explicit word/bitvector interpretation bridge; matching
+renderings or source hashes alone do not prove cross-language agreement.
+
+The step reduction also changes memory translation: Lean
+`Defs/MMU/Translate.lean` returns `(some address, state)` unconditionally and
+`vmType` always returns `Mbare`. The current HOL step retains upstream memory
+semantics. The relevant physical-address invariant is already part of
+`riscv_targetTheory.riscv_ok_def`: the active core has `VM = 0`,
+`ArchBase = 2`, no pending transfer or exception, and an aligned PC.
+`initial_state_valid` proves it initially; `challengeEvaluate` checks it before
+continuing an instruction step. Upstream `riscv_stepScript.sml` derives physical
+`translateAddr` from the `VM = 0` premise alone. Exposing that general lemma,
+proving agreement of option-valued steps under a projection to the reduced
+state, and handling the fixed FFI/cache transitions are concrete next steps.
+Unconditional agreement over arbitrary upstream virtual-memory states is not
+the required reachable-state theorem.
+
+A separate failure case must remain in scope: invalid instructions, `ECALL`,
+and `EBREAK` can produce `NextRISCV = NONE` from a valid input state. Both target
+wrappers apply an unspecified value operation to this result: HOL `THE NONE`
+and Lean's opaque `holTheNone`, on different state carriers. A projection proof
+must address their correspondence explicitly; equality of option-valued steps
+alone does not discharge this obligation. Restricting the bridge to successful
+compiler-produced steps would leave arbitrary participant bytecode uncovered.
+
+
+### Further parallel replay findings
+
+The ordinary `initBootstrapSuffixSteps` diagnostic completed naturally with
+exit 0 after 2,321.0 seconds, replaying 3,074 exported theorems. The independently
+scheduled challenge suffix diagnostic also passed (477.7 seconds). Neither
+imports its target theory; both remain native-predecessor diagnostics rather
+than full-package acceptance.
+
+The parallel audit exposed two additional logical replay forms:
+`initBootstrapCopy` request 237 (line 148825), also seen in `initPackedMemory`,
+uses `LEFT_FORALL_OR_THM`; `initBaselineInitial` request 336 (line 331211)
+uses the reverse direction of `FORALL_AND_THM`. The early logical simplifier
+now includes these checked library rules. Exact-sequent positive cases and
+false variants were added to `replayChecksTheory`; the regression completed
+successfully in 8 seconds (`/tmp/hol-init-focused-regression.log`). Focused
+article retries are still running. The refinement computation failure remains
+under investigation; no untested evaluator setup change has been made.
+
+
+The focused retries passed `initBootstrapCopy` (14.7 seconds),
+`initBaselineInitial` (78.2 seconds), and `initPackedMemory` (16.7 seconds).
+The refinement retry still rejected request 255, but the new residual diagnostic
+showed concrete word arithmetic and `dimindex (:64)` left unevaluated.
+An isolated standard-kernel test from the saved verifier heap failed before
+loading `wordsLib` and succeeded afterward, with a false arithmetic equality
+rejected (`/tmp/hol-init-word-setup.log`, `WORD_SETUP_CHECK_OK`). Operator heap
+preparation now explicitly loads `wordsLib`; author diagnostics mirror that
+setup when using an older heap. A new concrete-word regression and full
+refinement-article retry are running. The shared saved heap still awaits refresh after the active audit workers
+finish. The operator trust manifest has been refreshed for the reviewed
+`strictReplayLib.sml` and `prepareHeap.sml` changes and passes `check_trusted`.
+
+
+With the explicit `wordsLib` setup, the complete `initBaselineRefinement`
+article passed its guarded native-predecessor diagnostic in 142.0 seconds,
+exporting 570 theorems (`audit-word-v4/initBaselineRefinement/replay.log`).
+The concrete-word regression also passed in 9 seconds. All four failures
+observed so far in the ongoing parallel batch have successful focused retries;
+the batch and full independent Python verification remain unfinished.
+
+
+The 54-module parallel diagnostic batch has finished. Its final failure,
+`initBaselineChallengeExecution` request 32 (line 38847), was another use of
+`FORALL_AND_THM` against the older immutable reader snapshot. The repaired
+focused retry passed in 85.8 seconds (`audit-final-v5`). Combining the original
+batch with the five repaired module results leaves all 54 modules passed.
+This remains diagnostic coverage with checked native predecessor imports;
+it does not establish independent full Certificate acceptance. The operator
+heap rebuild and boundary/CLI gates are now running before full verifier v4.
+
+
+Verifier v4 preparation completed with the current trusted manifest and explicit
+word evaluator setup. All 25 Python boundary tests passed, as did the real CLI
+negative test with 904,476 frozen ROM bytes and exact-conclusion rejection.
+The full assembled submission is now running through `verifier/verify.py
+--local .submission-baseline-full --work .verify-baseline-full-v4 --timeout
+10800 --memory-gib 96 --progress`. Its result is still pending; a one-shot Herdr
+waker tracks the pipeline and will report completion to the verified session.
+
+
+### Full verifier v4 rejection without a HOL diagnostic
+
+The full Python verifier returned rejection after 5,659.224 seconds, with
+82,149,108 KiB maximum child RSS. The 493-byte replay log ends after creation
+of `candidateCertificate`; it contains no proof-rejection exception. The old
+Python wrapper discarded the child return code, so this evidence does not
+distinguish a signal termination from another nonzero exit. System earlyoom
+and kernel logs are inaccessible to this account. The operator subsequently
+checked the earlyoom log and confirmed SIGTERM against HOL PID 1409261.
+This run was therefore externally terminated; it does not establish a proof
+replay error. No verification release was committed or tagged.
+
+The wrapper now preserves `replay-process.json` and distinguishes signals,
+nonzero exits, timeouts, and missing/incorrect completion markers. Six new
+mocked-process regressions include rejection of a killed or unsuccessful child
+even when an exact marker exists. All 31 boundary tests pass. Full verifier v5
+will retain external memory/input-position samples and use an 80 GiB address
+space limit (60 GiB Poly/ML heap) to leave more host memory headroom.
+
+
+The operator requested a higher memory limit after freeing host RAM. V5 had
+passed heap preparation, all 31 boundary tests, and the real CLI negative test;
+its live HOL replay was deliberately stopped with SIGTERM for this requested
+restart. This is recorded separately from the earlyoom termination of v4.
+V6 is now running with `--memory-gib 112` (84 GiB Poly/ML heap), the same tested
+heap and unchanged trusted sources, a fresh `.verify-baseline-full-v6` workspace,
+process telemetry, and a rearmed Herdr waker. The operator requested keeping
+that limit for retries and publishing a commit/tag only after full acceptance.
+
+
+### Full independent verification passed (v6)
+
+On 2026-10-08, the complete assembled baseline passed the production Python
+verifier with exit 0 and JSON status `verified`, score `infinity`, and the exact
+950,336-byte frozen ROM. HOL returned 0, did not time out, and wrote the exact
+`VERIFIED\n` marker. The original and frozen ROM/proof hashes and all recorded
+trusted source hashes were independently checked after completion.
+
+The full run took 8,700.966 seconds (about 2 hours 25 minutes), with maximum
+child RSS 94,926,156 KiB (90.53 GiB). It used a 10,800-second timeout, 112 GiB
+address-space limit, and 84 GiB Poly/ML heap. The saved operator heap, all 31
+boundary tests, and real CLI negative test had passed before this unchanged-
+source run. No native baseline predecessor theories were imported for acceptance.
+
+See [the retained verification report](../artifacts/baseline/verification.json)
+for exact hashes, command, process status, limits, and resource measurements.
+The proof SHA-256 is
+`aad8e2e6ec4b59cf36e922c8fdcbaaa0bf89c4c3eff91bc97aef5b3f6e0cd98b`.
+This closes full certificate replay, not the separate reduced Lean decoder/step
+agreement obligation, which remains explicitly outstanding.

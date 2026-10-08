@@ -19,9 +19,15 @@ statement `Certificate baselineRom Infinity`. Its clean build checks the full
 compiler, bootstrap, installation, source refinement, and concrete stack bound.
 The exported ROM matches the checked construction byte for byte.
 
-A replayable article and positive end-to-end Python verifier run are still
-outstanding. This directory is an artifact archive, not a ready-to-submit
-three-file package.
+The full Python verifier accepted the replayable article package with exit 0
+and `status: verified`. The [verification record](verification.json) includes the
+frozen ROM/proof hashes and Infinity score. Run v6 took 8,701 seconds and peaked
+at 90.53 GiB child RSS, using `--timeout 10800 --memory-gib 112`.
+
+This directory remains an artifact archive, not the three-file submission
+package. See [author proof export](../../verifier/README.md#author-proof-export)
+for the export, literal-binding, and packaging commands. Agreement with the
+pinned reduced Lean decoder and machine step remains unproved.
 
 Build the Certificate with:
 

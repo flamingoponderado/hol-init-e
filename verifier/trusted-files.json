@@ -69,11 +69,11 @@
   "tools/build.py": "39088273cdf57f61e4ce980df11caf594a355b7059a29f0710db07323c7b369a",
   "tools/import_ast.py": "0de641ca7ff42f54f2e64d928326d8b1c1a28efa3834d93df7332cda561a4506",
   "tools/prepare_verifier.py": "683fc519f806444b3909f46fa023c59a7900f8e207800ed2cd1bd1ec3110fab2",
-  "verifier/articleReaderLib.sml": "8b2238c6672764cda5439915dc84c91a2cc8e71d64edaced479c1d846593745f",
+  "verifier/articleReaderLib.sml": "610b0cdd401b8ddab1befc1adb336eef133d4ae0393bf36cb2d0d1bd4380664c",
   "verifier/certificateReplayLib.sml": "77096ff17aaa5a2478af7ae6363c5b98ecc526ab7a111de2a7d74ad8c01e92f9",
   "verifier/check.sml": "d109bdefcc3f876886351f1b99161eb9a0f939059590c810fca67eceef7a8bc2",
   "verifier/literalDecodeLib.sml": "1b26f50fd1f680a1bb6d51bf4791e082ca3ea4479e91953aa4bf24c97d23c55e",
-  "verifier/prepareHeap.sml": "be8a94b3b335bb0a57ab235b82a93c1ca81d48b460e523a8a4eb76b873e035b1",
-  "verifier/strictReplayLib.sml": "de90c4c8c71b38bdfe974cee7ba498064c78dc6b024bc44ffcaece8a957caf4f",
-  "verifier/verify.py": "2cef783f665960a92b0ca2b6ccbab07274d8bf650fb0522abb1b59591dc6289e"
+  "verifier/prepareHeap.sml": "19f21ff5c48838f436b92a1f6aa3c9bb991447baa28a602d72b3f530643bb039",
+  "verifier/strictReplayLib.sml": "84e03a31f4bbe2a843f86855e09126c7403a8e4a5efb8e3ebb438d1604381d9b",
+  "verifier/verify.py": "c01b504fc518fc89348b18a6d21e27e741d946fe3c810f63a9466b6297998775"
 }

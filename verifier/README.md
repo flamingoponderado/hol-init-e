@@ -69,8 +69,11 @@ missing/stale prepared verifier. The positional interface without `--replay` nev
 `--local` selects full replay automatically; explicit `--structural-only` is a
 separate successful envelope check and never returns `verified`.
 
-The fixed proposition and replay path are implemented, and the complete baseline
-article package is assembled. Positive full-certificate replay remains unverified. Tests include
+The complete baseline article package passes the production Python verifier
+with the exact fixed Certificate conclusion and frozen ROM/score literals.
+The [verification record](../artifacts/baseline/verification.json) records exit 0,
+`status: verified`, the 950,336-byte ROM, Infinity score, and artifact hashes.
+Tests include
 strict-reader positive examples and a real-process negative test using a valid
 article proving an unrelated statement, including a full 904,476-byte literal
 ROM. `test_replay.py` checks that this reaches the exact-conclusion rejection
@@ -80,8 +83,10 @@ standard verifier kernel recomputes those requests. The exact first nine compile
 replay 13,399 exported theorems in one fresh standard-kernel process, using only
 the fixed library and preceding proof data. This includes full native bytecode
 compilation. The measured run took 679.5 seconds and peaked at 52.7 GiB RSS,
-so the baseline requires explicit limits above the defaults. Full Certificate
-acceptance is still unverified.
+so the baseline requires explicit limits above the defaults. The successful
+full-package run (v6) took 8,701 seconds and peaked at 90.53 GiB child RSS,
+using `--timeout 10800 --memory-gib 112`. Reduced Lean decoder/step agreement
+remains an independent, unproved semantic obligation.
 
 The fixed `initProofLibrary` supplies generic compiler, target, semantics, and
 CV lemmas. Its local source dependencies are pinned in the trusted-file manifest.
@@ -111,8 +116,10 @@ repeatable `--hide`, `--structural-only`, and `--progress`.
 `--trusted` selects the operator-owned HOL port checkout whose manifest,
 challenge, dependency pins, checker, and prepared heap are used. It is never
 read from a submission. `--work` must name a new directory; it retains frozen
-inputs and `replay.log` after success or rejection. Without it, replay uses a
-private temporary directory. Structural checks with `--work` retain the
+inputs, `replay.log`, and `replay-process.json` after success or rejection.
+The process report records the HOL return code or signal, elapsed time, and
+timeout status; it is diagnostic data, not an acceptance marker. Without `--work`,
+replay uses a private temporary directory. Structural checks with `--work` retain the
 sanitized inputs, but never claim a proof was verified.
 
 `--hide` masks each named file or directory in the replay process using
@@ -132,8 +139,9 @@ python3 verifier/verify.py --local /path/to/submission \
   --hide /path/to/submission --hide /path/to/private-data --progress
 ```
 
-The full baseline Certificate is proved in HOL. Its complete article package is
-assembled; positive end-to-end Python verification remains unverified.
+The full baseline Certificate is proved in HOL, and its complete article package
+has passed end-to-end Python verification. Use `--timeout 10800 --memory-gib 112`
+for the resource limits of the successful baseline run.
 
 ## Author proof export
 
@@ -174,5 +182,33 @@ includes exactly HOL’s four foundational axioms (`BOOL_CASES_AX`, `ETA_AX`,
 `SELECT_AX`, `INFINITY_AX`) alongside the fixed library theorems. Regression
 checks reject changed bytes, forged literal
 definitions, false results, missing or forged equations, unrelated conclusions, and attempts
-to replace fixed constants. Full baseline package assembly, size limits, and
-end-to-end performance still need validation before a release.
+to replace fixed constants. The full baseline package has passed production
+verification; its result, resource use, and hashes are recorded in
+[verification.json](../artifacts/baseline/verification.json).
+
+
+### Parallel article diagnostics
+
+To locate replay gaps without repeatedly processing the full compiler prefix:
+
+```sh
+python3 tools/audit_articles.py --list
+python3 tools/audit_articles.py --workers 3 --heap-gib 24 --resume \
+  initBootstrapSuffixSteps initBootstrapChallengeSuffixSteps initBaselineCertificate
+```
+
+With no module names, the tool checks all modules in the export plan. Each worker
+loads built predecessor theories, introduces the selected article's definitions
+in a fresh candidate theory, and checks that article's commands. The runner
+uses compiled theory parent metadata and records separate logs and results under
+`.export-baseline-checkpoint/audit/`. Successful results are reused only when
+the recorded input fingerprints match. Failures in one article do not stop
+the other workers.
+
+These are author diagnostics, **not submission verification**: predecessor
+theorems are imported instead of reconstructed from the submitted article, and
+the loaded datatype metadata can differ from a fresh full replay. The diagnostic
+evaluation guard also excludes mapped predecessor constants, preserving the
+production restriction on evaluating candidate definitions. Only the complete
+`verifier/verify.py` run checks the package from the fixed trust root and binds
+its conclusion to the frozen bytecode and score.

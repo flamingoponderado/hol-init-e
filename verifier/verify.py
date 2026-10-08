@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 import stat
 import subprocess
+import signal
+import time
 import resource
 import shutil
 import tempfile
@@ -224,6 +226,18 @@ def replay_frozen(frozen, timeout=600, memory_gib=32, *, trusted=None, work=None
         (snapshot/'score.txt').write_text(str(frozen.score), encoding='ascii')
         environment = os.environ.copy()
         environment['HOL_INIT_E_SNAPSHOT'] = str(snapshot)
+        started = time.monotonic()
+        def record_process(returncode=None, *, timed_out=False):
+            number = -returncode if returncode is not None and returncode < 0 else None
+            try:
+                name = signal.Signals(number).name if number is not None else None
+            except ValueError:
+                name = 'signal '+str(number)
+            report = {'returncode': returncode, 'signal': name,
+                      'signal_number': number, 'timed_out': timed_out,
+                      'wall_seconds': time.monotonic()-started}
+            (work/'replay-process.json').write_text(json.dumps(report, indent=2)+'\n')
+            return report
         with (work/'replay.log').open('wb') as log:
             try:
                 command = hidden_replay_command(
@@ -234,10 +248,21 @@ def replay_frozen(frozen, timeout=600, memory_gib=32, *, trusted=None, work=None
                     stdout=log, stderr=subprocess.STDOUT, timeout=timeout,
                     preexec_fn=limits)
             except subprocess.TimeoutExpired as exc:
+                # subprocess.run kills and waits for the child on timeout, but
+                # TimeoutExpired does not expose that child's final returncode.
+                record_process(timed_out=True)
                 raise Rejected('proof replay exceeded the time limit') from exc
+        report = record_process(process.returncode)
+        if process.returncode < 0:
+            raise Rejected('HOL replay process terminated by '+report['signal']+
+                           ' ('+str(report['signal_number'])+')')
+        if process.returncode != 0:
+            raise Rejected('HOL replay process exited with status '+str(process.returncode))
         marker = snapshot/'verified'
-        if process.returncode != 0 or not marker.is_file() or marker.read_bytes() != b'VERIFIED\n':
-            raise Rejected('HOL replay did not prove the exact fixed Certificate')
+        if not marker.is_file():
+            raise Rejected('HOL replay did not prove the exact fixed Certificate: completion marker missing')
+        if marker.read_bytes() != b'VERIFIED\n':
+            raise Rejected('HOL replay did not prove the exact fixed Certificate: incorrect completion marker')
 
 
 def main(argv=None):

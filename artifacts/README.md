@@ -21,5 +21,6 @@ external integrity checks, not HOL cryptographic proofs.
 
 **This is not a challenge submission.** The raw native code omits startup and initialization data. The
 [bootstrapped baseline](baseline/README.md) has a proved HOL Certificate with
-score Infinity; its replayable article is still outstanding. No Certificate
+score Infinity and a replayable article package accepted by the full Python
+verifier. See the [verification record](baseline/verification.json). No Certificate
 is claimed for the raw native image alone.

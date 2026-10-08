@@ -127,7 +127,11 @@ fun fixed_eval c =
       (fn tm => #Thy (dest_thy_const tm) = current_theory ())
       (find_terms is_const c) then reject "candidate constant in fixed EVAL request"
       else ();
-  in EQT_ELIM (bossLib.EVAL c) end;
+  in EQT_ELIM ((bossLib.EVAL THENC
+       QCONV (REWRITE_CONV [checked wordsTheory.word_0_n2w,
+                           checked wordsTheory.word_1_n2w,
+                           checked wordsTheory.ZERO_LT_dimword,
+                           checked wordsTheory.ONE_LT_dimword])) c) end;
 
 fun bool_taut c =
   let
@@ -146,7 +150,7 @@ fun bool_taut c =
   in GENL variables (tautLib.TAUT_PROVE body) end;
 
 (* Keep this early simplifier away from large computation literals. *)
-fun small_logical tm =
+fun bounded_term limit tm =
   let
     exception TooLarge;
     fun visit 0 _ = raise TooLarge
@@ -155,7 +159,9 @@ fun small_logical tm =
                             in visit (visit (n-1) f) x end
           else if is_abs t then visit (n-1) (snd(dest_abs t))
           else n-1;
-  in (ignore(visit 256 tm); true) handle TooLarge => false end;
+  in (ignore(visit limit tm); true) handle TooLarge => false end;
+
+fun small_logical tm = bounded_term 256 tm;
 
 (* Use only checked datatype equations for the types occurring in a small
    request, including constructor distinctness and injectivity. *)
@@ -171,7 +177,9 @@ fun datatype_rewrites c =
 fun logical_simp c =
   EQT_ELIM (QCONV (SIMP_CONV bool_ss
     (datatype_rewrites c @
-     [boolTheory.FUN_EQ_THM, pairTheory.PAIR, combinTheory.I_THM])) c)
+     [boolTheory.FUN_EQ_THM, boolTheory.RIGHT_FORALL_OR_THM,
+      boolTheory.LEFT_FORALL_OR_THM, boolTheory.FORALL_AND_THM,
+      pairTheory.PAIR, combinTheory.I_THM, numeralTheory.numeral_evenodd])) c)
   handle original as HOL_ERR _ =>
     if small_logical c then
       (numLib.ARITH_PROVE c handle HOL_ERR _ => raise original)
@@ -220,18 +228,40 @@ fun resolve_fallback trusted proved (hs,c) =
 (* Most requests name a theorem already present verbatim. Index that path
    once for the fixed library and use the reader's existing theorem net for
    article facts, retaining exact sequent and tag checks after lookup. *)
+(* Huge literal facts remain in the complete fallback library, but are kept
+   out of structural fast indexes to bound index construction memory. *)
 fun resolve trusted =
   let
-    val index = List.foldl (fn (th,net) => Net.insert(concl th,th) net) Net.empty trusted;
+    val index = List.foldl (fn (th,net) => Net.insert(concl th,th) net) Net.empty
+      (List.filter (bounded_term 4096 o concl) trusted);
     fun variants th = th :: CONJUNCTS (SPEC_ALL (checked th));
     val patterns = List.foldl
       (fn (th,net) => Net.insert(snd(strip_forall(concl th)),th) net)
-      Net.empty (List.concat(map variants trusted));
+      Net.empty (List.filter (bounded_term 4096 o concl)
+        (List.concat(map variants trusted)));
+    fun lookup proved (seq as (hs,c)) =
+      case List.find (same_sequent seq) (Net.index c index @ Net.index c proved) of
+        SOME th => SOME (checked th)
+      | NONE => instance (Net.match (snd(strip_forall c)) patterns) seq;
+    (* Writer requests sometimes wrap a proved proposition in equality with T.
+       Normalize only small requests, then transport the matched checked fact
+       back through the kernel conversion to the exact original sequent. *)
+    fun normalized_lookup proved (seq as (hs,c)) =
+      if not (small_logical c) then NONE else
+      let val conversion = QCONV (SIMP_CONV bool_ss []) c;
+          val normalized = rhs (concl conversion);
+      in if aconv c normalized then NONE else
+           case lookup proved (hs,normalized) of
+             NONE => NONE
+           | SOME th =>
+               let val result = checked (EQ_MP (SYM conversion) (checked th))
+               in if same_sequent seq result then SOME result else NONE end
+      end handle HOL_ERR _ => NONE | Fail _ => NONE;
   in fn proved => fn seq as (hs,c) =>
-    case List.find (same_sequent seq) (Net.index c index @ Net.index c proved) of
+    case lookup proved seq of
       SOME th => checked th
     | NONE =>
-      (case instance (Net.match (snd(strip_forall c)) patterns) seq of
+      (case normalized_lookup proved seq of
          SOME th => checked th
        | NONE =>
            let val simple = if null hs andalso small_logical c then

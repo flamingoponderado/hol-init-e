@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 import shutil
 import unittest
+import subprocess
 from unittest.mock import patch
 import verify
 
@@ -123,6 +124,82 @@ class BoundaryTests(unittest.TestCase):
         with patch.object(verify, 'ROOT', root), patch('subprocess.check_output', return_value='wrong'):
             with self.assertRaisesRegex(verify.Rejected, 'pin differs'):
                 verify.check_trusted()
+
+class ReplayProcessTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.candidate = self.root/'candidate'
+        self.candidate.mkdir()
+        (self.candidate/'claim.json').write_text('{"K":"infinity"}')
+        (self.candidate/'rom.bin').write_bytes(b'\0')
+        (self.candidate/'certificate.art').write_bytes(b'untrusted')
+        self.frozen = verify.freeze(self.candidate)
+        build = self.root/'.build'
+        build.mkdir()
+        (build/'verifier.heap').write_bytes(b'mocked heap')
+        (self.root/'verifier').mkdir()
+        manifest = self.root/'verifier/trusted-files.json'
+        manifest.write_text('{}')
+        (self.root/'provenance.json').write_text('{"tested_hol":"pinned"}')
+        (build/'verifier.json').write_text(json.dumps({
+            'hol': str(self.root/'HOL'), 'hol_revision': 'pinned',
+            'heap_sha256': verify.file_digest(build/'verifier.heap'),
+            'manifest_sha256': verify.file_digest(manifest)}))
+        self.work = self.root/'work'
+
+    def run_replay(self, returncode=0, marker=None, timed_out=False):
+        def child(command, **kwargs):
+            if marker is not None:
+                snapshot = Path(kwargs['env']['HOL_INIT_E_SNAPSHOT'])
+                (snapshot/'verified').write_bytes(marker)
+            if timed_out:
+                raise subprocess.TimeoutExpired(command, kwargs['timeout'])
+            return subprocess.CompletedProcess(command, returncode)
+        with patch.object(verify.subprocess, 'run', side_effect=child):
+            verify.replay_frozen(self.frozen, trusted=self.root, work=self.work)
+
+    def report(self):
+        return json.loads((self.work/'replay-process.json').read_text())
+
+    def test_killed_child_rejected_even_with_exact_marker(self):
+        with self.assertRaisesRegex(verify.Rejected, 'terminated by SIGTERM'):
+            self.run_replay(returncode=-15, marker=b'VERIFIED\n')
+        self.assertEqual(self.report()['returncode'], -15)
+        self.assertEqual(self.report()['signal'], 'SIGTERM')
+        self.assertFalse(self.report()['timed_out'])
+
+    def test_nonzero_exit_rejected_even_with_exact_marker(self):
+        with self.assertRaisesRegex(verify.Rejected, 'exited with status 7'):
+            self.run_replay(returncode=7, marker=b'VERIFIED\n')
+        self.assertEqual(self.report()['returncode'], 7)
+        self.assertIsNone(self.report()['signal'])
+
+    def test_zero_exit_requires_marker(self):
+        with self.assertRaisesRegex(verify.Rejected, 'completion marker missing'):
+            self.run_replay()
+        self.assertEqual(self.report()['returncode'], 0)
+
+    def test_zero_exit_requires_exact_marker_bytes(self):
+        with self.assertRaisesRegex(verify.Rejected, 'incorrect completion marker'):
+            self.run_replay(marker=b'VERIFIED\nextra')
+        self.assertEqual(self.report()['returncode'], 0)
+
+    def test_zero_exit_and_exact_marker_accept(self):
+        self.run_replay(marker=b'VERIFIED\n')
+        self.assertEqual(self.report()['returncode'], 0)
+        self.assertFalse(self.report()['timed_out'])
+        self.assertIsNone(self.report()['signal'])
+        self.assertGreaterEqual(self.report()['wall_seconds'], 0)
+
+    def test_timeout_rejected_even_with_exact_marker(self):
+        with self.assertRaisesRegex(verify.Rejected, 'exceeded the time limit'):
+            self.run_replay(marker=b'VERIFIED\n', timed_out=True)
+        self.assertTrue(self.report()['timed_out'])
+        self.assertIsNone(self.report()['returncode'])
+        self.assertIsNone(self.report()['signal'])
+
 
 class CommandTests(unittest.TestCase):
     setUp = BoundaryTests.setUp

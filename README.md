@@ -13,8 +13,10 @@ checked finite bootstrap execution to native entry, and the resulting ordinary
 memory agrees with the fixed source state.
 HOL now proves the full fixed challenge Certificate for the 950,336-byte
 bootstrapped baseline ROM with score Infinity. The complete article package is
-assembled. **Positive full-certificate acceptance by the Python verifier remains
-unverified.**
+assembled and **accepted by the full Python verifier**, binding the proof to
+the frozen ROM and Infinity score. The [verification record](artifacts/baseline/verification.json)
+contains the result and artifact hashes. Agreement with the pinned reduced Lean
+decoder and machine step remains unproved.
 
 ## Fixed challenge and untrusted submissions
 
@@ -24,14 +26,16 @@ replace the challenge or certificate proposition. `experiments/` is baseline
 compiler development and grants no additional participant authority.
 
 ```sh
-python3 verifier/verify.py /path/to/submission
+python3 verifier/verify.py --local /path/to/submission --hol /path/to/HOL --progress
 python3 verifier/test_verify.py
 ```
 
 The verifier checks trusted-file hashes and the CakeML pin before inspecting
-candidate files. It never executes candidate ML. Preflight success returns **incomplete (exit 2)**. With `--replay`, the verifier
-uses an operator-prepared HOL heap and accepts only a closed proof of the exact
-fixed `initChallenge.Certificate submittedBytes submittedScore`. See
+candidate files. It never executes candidate ML. `--local` runs full verification,
+preparing a missing or stale operator heap as needed. Acceptance requires a
+closed proof of the exact fixed
+`initChallenge.Certificate submittedBytes submittedScore`. The legacy positional
+interface performs preflight only (exit 2) unless `--replay` is supplied. See
 [the verifier boundary](verifier/README.md) and [submission format](submission/README.md).
 
 ## Included
@@ -98,6 +102,10 @@ An instruction check on baseline compiler output is not a replacement for it.
 The current restricted step reuses upstream L3 semantics. Agreement with the
 pinned reduced Lean decoder and step remains to be proved; the challenge's
 initial state and oracle hooks are fixed in `initMachine` and `initSubmission`.
+The remaining bridge must cover physical-address translation and failed steps
+as well as decoding, including arbitrary invalid participant bytecode. See
+[the semantic agreement investigation](experiments/RESULTS.md#semantic-agreement-investigation)
+for the existing state invariant and unresolved obligations.
 The compiler correctness theorem is connected to this fixed evaluator.
 
 ## Reproduce the compiler and verifier
@@ -105,8 +113,14 @@ The compiler correctness theorem is connected to this fixed evaluator.
 ```sh
 python3 tools/build.py --hol /path/to/HOL initBaselineCertificateTheory
 python3 tools/prepare_verifier.py --hol /path/to/HOL
-python3 verifier/verify.py --local /path/to/submission --hol /path/to/HOL
+python3 verifier/verify.py --local /path/to/submission --hol /path/to/HOL \
+  --timeout 10800 --memory-gib 112 --progress
 ```
+
+The successful full-baseline verification run (v6) used the 10,800-second
+and 112 GiB limits above. It took 8,701 seconds (about 2 hours 25 minutes)
+and peaked at 90.53 GiB child RSS. The 600-second/32 GiB defaults are below
+the measured requirements of this baseline proof.
 
 [Checked native artifacts](artifacts/README.md) are included in `artifacts/`.
 The compiler target writes `compiled.bin`, `bitmaps.txt`, and `backend.conf`
@@ -115,19 +129,20 @@ challenge ROM. Large evaluated theories require substantial memory and time
 to export. Use the tested HOL pin in `provenance.json` for verifier preparation.
 
 The fixed challenge and accelerator regression theories build successfully.
-Six AST importer tests and twenty-five verifier tests pass. Strict replay component
+Six AST importer tests and thirty-one verifier boundary tests pass. Strict replay component
 tests cover valid proofs and forged axioms; the real verifier rejects a valid
-article whose conclusion is merely `T`. No positive full-certificate replay is
-claimed yet.
+article whose conclusion is merely `T`. The full baseline package also passes
+the production Python verifier.
 
 See [experiment results](experiments/RESULTS.md) for the compiler results and
 [the verifier boundary](verifier/README.md) for statement binding.
 
-## Remaining certificate obligations
+## Remaining semantic agreement obligation
 
-1. Prove agreement with the pinned reduced Lean decoder and machine step.
-2. Pass the assembled baseline `Certificate` package through the full Python
-   verifier with frozen bytecode and score literals.
+Prove agreement with the pinned reduced Lean decoder and machine step.
+The full baseline `Certificate` package has passed the Python verifier with
+frozen bytecode and score literals; that proves the fixed HOL challenge
+statement and does not establish cross-language semantic agreement.
 
 The full compiler installation predicate (`pan_installed`) is proved for states
 related to the checked bootstrap final state, including native bytes, bitmap

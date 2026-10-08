@@ -50,6 +50,15 @@ val _ = must_reject "wrong primitive CV result"
   (fn () => (strictReplayLib.resolve [] empty
     ([],``cv$cv_add (cv$Num 19) (cv$Num 23) = cv$Num 43``); ()));
 
+(* Representation conversion produces CV data but is checked by ordinary
+   evaluation of the fixed encoder, not by the raw CV instruction evaluator. *)
+val _ = strictReplayLib.resolve [] empty
+  ([],``cv_type$from_list cv$Num [1n;2] =
+    cv$Pair (cv$Num 1) (cv$Pair (cv$Num 2) (cv$Num 0))``);
+val _ = must_reject "wrong CV representation conversion"
+  (fn () => (strictReplayLib.resolve [] empty
+    ([],``cv_type$from_list cv$Num [1n;2] = cv$Num 0``); ()));
+
 (* Replay CV equations for fresh functions, without cv_trans registrations. *)
 Definition candidateCv_def:
   candidateCv x = cv$cv_add x (cv$Num 7)

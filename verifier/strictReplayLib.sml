@@ -46,27 +46,28 @@ val cv_primitives =
      cv_lt_tm,cv_if_tm,cv_eq_tm]
   end;
 
+fun code_expression tm =
+  type_of tm = cvSyntax.cv andalso
+  (if is_var tm then true
+   else if cvSyntax.is_cv_num tm then
+     numSyntax.is_numeral (cvSyntax.dest_cv_num tm)
+   else if boolSyntax.is_let tm then
+     let val (binding,value) = boolSyntax.dest_let tm
+         val (v,body) = dest_abs binding
+     in type_of v = cvSyntax.cv andalso code_expression value andalso
+        code_expression body end
+   else let val (f,args) = strip_comb tm
+        in is_const f andalso not (null args) andalso
+           List.all code_expression args end)
+  handle HOL_ERR _ => false;
+
 fun raw_compute facts c =
   let
     val (lhs,_) = dest_eq c;
-    val _ = if type_of lhs = cvSyntax.cv andalso null (free_vars lhs)
-            then () else reject "not a closed CV computation";
+    val _ = if code_expression lhs andalso null (free_vars lhs)
+            then () else reject "not a closed executable CV computation";
     (* Representation theorems can have the same head as executable code.
        Select only equations in the kernel evaluator's CV expression language. *)
-    fun code_expression tm =
-      type_of tm = cvSyntax.cv andalso
-      (if is_var tm then true
-       else if cvSyntax.is_cv_num tm then
-         numSyntax.is_numeral (cvSyntax.dest_cv_num tm)
-       else if boolSyntax.is_let tm then
-         let val (binding,value) = boolSyntax.dest_let tm
-             val (v,body) = dest_abs binding
-         in type_of v = cvSyntax.cv andalso code_expression value andalso
-            code_expression body end
-       else let val (f,args) = strip_comb tm
-            in is_const f andalso not (null args) andalso
-               List.all code_expression args end)
-      handle HOL_ERR _ => false;
     fun equation th =
       let
         val th = SPEC_ALL (checked th);
@@ -206,10 +207,10 @@ fun resolve_fallback trusted proved (hs,c) =
                    handle HOL_ERR _ => raw_compute facts c
                         | Fail _ => raw_compute facts c)
                  handle e as HOL_ERR _ =>
-                   if is_eq c andalso type_of(lhs c) = cvSyntax.cv
+                   if is_eq c andalso code_expression (lhs c)
                    then raise e else logical_compute c
                       | e as Fail _ =>
-                   if is_eq c andalso type_of(lhs c) = cvSyntax.cv
+                   if is_eq c andalso code_expression (lhs c)
                    then raise e else logical_compute c
       in if same_sequent (hs,c) th then checked th
          else reject "computation proved a different statement" end

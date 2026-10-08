@@ -124,14 +124,15 @@ See [experiment results](experiments/RESULTS.md) for the compiler results and
 ## Remaining certificate obligations
 
 1. Prove agreement with the pinned reduced Lean decoder and machine step.
-2. Connect compiler correctness to the restricted target and cache-hook
-   evaluator, discharging configuration, memory, resource, and non-failure
-   premises.
+2. Instantiate the checked Pancake-to-challenge refinement for the baseline,
+   including the stack bound and remaining source/machine-state premises.
 3. Prove the complete baseline `Certificate` and export a replayable article.
 
 The full compiler installation predicate (`pan_installed`) is proved for states
 related to the checked bootstrap final state, including native bytes, bitmap
-allocation, startup headers, and MMIO layout.
+allocation, startup headers, and MMIO layout. The general Pancake compiler
+refinement is also proved for the fixed challenge evaluator, retaining its
+explicit installation, configuration, and resource premises.
 
 `cv_compute` replaces concrete evaluation proofs; these semantic obligations
 still require proofs. No admitted theorem fills the gaps. The 56,017-file Lean

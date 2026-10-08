@@ -1049,3 +1049,23 @@ tag checked.
 
 This provides the actual compiler output for a compact stack-bound checker;
 it does not yet prove a stack bound or the full `Certificate`.
+
+## Complete Pancake-to-challenge refinement
+
+`initChallengePancakeTheory` passed a clean HOL build (395 s observed).
+`challenge_pan_to_target_compile_semantics` composes the checked fixed-evaluator
+lab compiler refinement with CakeML's word-to-stack, word-to-word, and
+Pancake-to-word correctness results. It proves that the fixed
+`challengeMachineSem` refines the source behavior, with the upstream explicit
+resource-limit condition and installation/configuration premises. The absence
+of dynamic installation is derived from the Pancake compilation pipeline.
+
+The proof covers initialization, source memory agreement, the globals/heap
+split, alignment, and the connection between stack limits in words and machine
+address intervals. Concrete 64-bit arithmetic is discharged by small arithmetic
+lemmas and directed bounds. The final theorem is closed and tag checked; no
+interactive debugging hooks or admitted facts occur in the source.
+
+This completes the general compiler/evaluator bridge. The concrete stack bound,
+remaining baseline instantiations, full `Certificate`, and positive verifier
+article replay still need to be completed.

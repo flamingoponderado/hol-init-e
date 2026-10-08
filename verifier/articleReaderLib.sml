@@ -134,6 +134,8 @@ fun raw_read_article input
           ("line " ^ Int.toString line_num ^ ": " ^
            Feedback.top_structure_of error ^ "." ^ Feedback.top_function_of error ^
            ": " ^ Feedback.message_of error)
+             | Fail message => raise ERR
+                 ("line " ^ Int.toString line_num ^ ": " ^ message)
     in loop {stack=stack,dict=dict,thms=thms,line_num=line_num+1} end
 in
   Net.map (Conv.CONV_RULE NUMERAL_conv)

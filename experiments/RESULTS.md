@@ -1322,3 +1322,18 @@ created the operator-owned literals, and started replay. No positive
 full-Certificate acceptance is claimed until that process succeeds. The latest
 prepared heap passed the real CLI regression: all 904,476 native bytes were
 frozen and an unrelated proof was rejected at the exact conclusion check.
+
+
+### First complete Python verification rejected
+
+The first full Python verifier run completed after 825.1 seconds and rejected
+the package. Its peak child RSS was 81,663,732 KiB (77.9 GiB). The HOL log reports
+`certificate replay: symbolic request requires a proved library fact`; this is
+a missing replay proof, not successful Certificate acceptance. The fixed
+bytecode/score snapshot and assembled proof package are retained for diagnosis.
+
+An author-only diagnostic replay now logs candidate definitions and the exact
+unresolved request. It uses the same frozen input and standard kernel, without
+adding facts or changing the acceptance criterion. The production reader also
+attaches the article line number to `Fail` exceptions, as it already did for
+`HOL_ERR`, so subsequent rejections can be located in the concatenated package.

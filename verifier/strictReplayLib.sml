@@ -39,6 +39,13 @@ fun instance facts seq =
 (* Article-defined CV functions have no cv_trans metadata. Recover their code
    equations only from already checked theorems, then ask the kernel compute
    primitive to prove the requested equality. No article equation is assumed. *)
+val cv_primitives =
+  let open cvSyntax in
+    [cv_pair_tm,cv_num_tm,cv_fst_tm,cv_snd_tm,cv_ispair_tm,
+     cv_add_tm,cv_sub_tm,cv_mul_tm,cv_div_tm,cv_mod_tm,
+     cv_lt_tm,cv_if_tm,cv_eq_tm]
+  end;
+
 fun raw_compute facts c =
   let
     val (lhs,_) = dest_eq c;
@@ -66,7 +73,7 @@ fun raw_compute facts c =
         val (l,r) = dest_eq (concl th);
         val (f,args) = strip_comb l;
         val _ = if null (hyp th) andalso is_const f andalso not (null args)
-                   andalso #Thy (dest_thy_const f) <> "cv"
+                   andalso not (List.exists (aconv f) cv_primitives)
                    andalso code_expression r
                    andalso List.all (fn v => is_var v andalso type_of v = cvSyntax.cv) args
                    andalso HOLset.numItems (HOLset.addList (empty_tmset,args)) = length args

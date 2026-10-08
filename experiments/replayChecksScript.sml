@@ -63,6 +63,15 @@ Definition candidateCvEq_def:
 End
 val _ = strictReplayLib.resolve [cvTheory.cv_eq_def,candidateCvEq_def] empty
   ([],``candidateCvEq (cv$Num 3) = cv$Num 1``);
+Definition candidateCvPower_def:
+  candidateCvPower x = cv$cv_exp (cv$Num 2) x
+End
+val power_facts = [candidateCvPower_def,cvTheory.cv_exp_eq];
+val _ = strictReplayLib.resolve power_facts empty
+  ([],``candidateCvPower (cv$Num 7) = cv$Num 128``);
+val _ = must_reject "wrong CV exponentiation result"
+  (fn () => (strictReplayLib.resolve power_facts empty
+    ([],``candidateCvPower (cv$Num 7) = cv$Num 129``); ()));
 val _ = must_reject "wrong CV result"
   (fn () => (strictReplayLib.resolve cv_facts empty
     ([],``candidateCvOuter (cv$Num 3) = cv$Num 18``); ()));

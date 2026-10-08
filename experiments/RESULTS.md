@@ -1256,7 +1256,36 @@ verification of the complete Certificate package are still unfinished.
 The word compiler additionally requires mutually recursive CV equations stored
 as a conjunction. The reader now extracts the checked conjuncts before selecting
 code equations. Direct word compilation from those equations succeeds, and the
-independent exporter regression covers conjunctive code facts. Failed CV
-requests no longer fall through to ordinary evaluation; a missing equation now
-fails directly instead of causing an expensive fallback. Full word-article and
-later compiler-article checks are still required.
+independent exporter regression covers conjunctive code facts. Failed executable CV requests no longer fall through to ordinary evaluation;
+a missing equation now fails directly instead of causing an expensive fallback.
+Closed representation conversions use the fixed ordinary evaluator instead.
+
+
+### Native article replay and remaining package assembly
+
+Focused standard-kernel checks now pass the word compiler article (94 exported
+theorems), compiler configuration article (486), and full native-bytecode
+article (1,955). The native check recomputes the complete register-allocation
+literal conversion, checked backend compilation, and byte count. These focused
+checks import built predecessor theories and do not establish independent
+full-chain acceptance.
+
+The configuration check required reconstruction of small symbolic natural-number
+arithmetic and datatype-constructor equations. The reader uses HOL's arithmetic
+prover and checked datatype equations, with negative regression cases. Primitive
+CV arithmetic now avoids scanning the full accumulated equation library.
+Representation conversions are distinguished from executable CV expressions;
+this permits checked conversion of the allocation literal without allowing
+missing executable equations to fall through to ordinary evaluation.
+
+A separate concatenated replay, using only the fixed library, processed the
+first eight compiler articles and reached the native article. That run used
+the older 115,526,261-byte simplification article and stopped at the allocation
+conversion before the representation fix. A new independent run uses the exact
+first nine articles selected by the current package plan (532,903,402 bytes),
+including its newer 421,769,322-byte simplification article. Its success and
+full Certificate acceptance remain unverified.
+
+The ordinary bootstrap suffix export is complete at 158,386,675 bytes. Both
+bootstrap suffix articles and the final challenge Certificate article are now
+available; the installation and memory dependency exports are still in progress.

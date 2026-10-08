@@ -156,9 +156,21 @@ fun small_logical tm =
           else n-1;
   in (ignore(visit 256 tm); true) handle TooLarge => false end;
 
+(* Use only checked datatype equations for the types occurring in a small
+   request, including constructor distinctness and injectivity. *)
+fun datatype_rewrites c =
+  if small_logical c then
+    let
+      val types = Lib.mk_set (map type_of (find_terms (K true) c));
+      fun rewrites ty = map checked (#rewrs (TypeBase.simpls_of ty))
+                        handle HOL_ERR _ => [];
+    in List.concat (map rewrites types) end
+  else [];
+
 fun logical_simp c =
   EQT_ELIM (QCONV (SIMP_CONV bool_ss
-    [boolTheory.FUN_EQ_THM, pairTheory.PAIR, combinTheory.I_THM]) c)
+    (datatype_rewrites c @
+     [boolTheory.FUN_EQ_THM, pairTheory.PAIR, combinTheory.I_THM])) c)
   handle original as HOL_ERR _ =>
     if small_logical c then
       (numLib.ARITH_PROVE c handle HOL_ERR _ => raise original)

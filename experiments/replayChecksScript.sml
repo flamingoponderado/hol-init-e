@@ -112,6 +112,11 @@ val _ = strictReplayLib.bool_taut
   ``(a <=> b) ==> (b ==> (c <=> d)) ==> ((a ==> c) <=> (b ==> d))``;
 val _ = must_reject "false propositional request"
   (fn () => (strictReplayLib.bool_taut ``a /\ ~a``; ()));
+val _ = strictReplayLib.resolve [] empty
+  ([],``(([]:'a list) = a0::a1) = F``);
+val _ = must_reject "false datatype distinctness"
+  (fn () => (strictReplayLib.resolve [] empty
+    ([],``(([]:'a list) = a0::a1) = T``); ()));
 val _ = strictReplayLib.resolve [] empty ([],``(m:num) < n <=> 1 + m <= n``);
 val _ = must_reject "false symbolic arithmetic equivalence"
   (fn () => (strictReplayLib.resolve [] empty ([],``(m:num) < n <=> m <= n``); ()));

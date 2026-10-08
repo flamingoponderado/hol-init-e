@@ -1,6 +1,6 @@
 {
   "kind": "candidate-baseline-rom",
-  "certificate": "not_proved",
+  "certificate": "proved_in_HOL",
   "admission": "proved",
   "native_entry": "0x80000fec",
   "data_rom": "0x800df000",
@@ -19,5 +19,9 @@
   },
   "admission_theorem": "initBaselineAdmission.baseline_admitted",
   "native_end": "0x800ddd08",
-  "native_end_theorem": "initBaselineRom.native_ends_at_fixed_buffer"
+  "native_end_theorem": "initBaselineRom.native_ends_at_fixed_buffer",
+  "certificate_theorem": "initBaselineCertificate.baseline_certificate",
+  "score": "infinity",
+  "article_replay": "not_completed",
+  "tested_hol": "7f769972f0acf26df39facd83339c05a66d9ff26"
 }

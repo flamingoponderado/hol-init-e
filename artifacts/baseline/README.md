@@ -1,4 +1,4 @@
-# Candidate baseline ROM — certificate not yet proved
+# Baseline ROM — Certificate proved in HOL
 
 The 950,336-byte ROM combines the 208-byte bootstrap, padding to native entry
 `0x80000fec`, the checked 904,476-byte native compiler output, and initialization
@@ -14,8 +14,20 @@ admission of the resulting submission. These theories passed clean builds for
 this placement. Execution-proof details and remaining obligations are tracked
 in `experiments/RESULTS.md`.
 
-The full challenge Certificate is still unproved. These are development
-artifacts, not a verified submission; no score or certificate article is supplied.
+`initBaselineCertificate.baseline_certificate` proves the fixed challenge
+statement `Certificate baselineRom Infinity`. Its clean build checks the full
+compiler, bootstrap, installation, source refinement, and concrete stack bound.
+The exported ROM matches the checked construction byte for byte.
+
+A replayable article and positive end-to-end Python verifier run are still
+outstanding. This directory is an artifact archive, not a ready-to-submit
+three-file package.
+
+Build the Certificate with:
+
+```sh
+python3 tools/build.py --hol /path/to/tested/HOL initBaselineCertificateTheory
+```
 
 The construction target is `initBaselineRomTheory`. Exported files are named
 `bootstrap.bin` and `baseline-rom.bin` in the build directory. Integrity hashes

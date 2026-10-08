@@ -19,7 +19,7 @@ cmp .build/backend.conf artifacts/backend.conf
 The files are exported from the checked CV results. Their SHA-256 hashes are
 external integrity checks, not HOL cryptographic proofs.
 
-**This is not a challenge submission.** The native code still needs a bootstrap
-and a proof of installation from the challenge's zero-RAM initial state. No
-`Certificate` proof or score is claimed for these files. The fixed source,
-restricted machine and verifier are separate from this baseline development.
+**This is not a challenge submission.** The raw native code omits startup and initialization data. The
+[bootstrapped baseline](baseline/README.md) has a proved HOL Certificate with
+score Infinity; its replayable article is still outstanding. No Certificate
+is claimed for the raw native image alone.

@@ -1145,3 +1145,30 @@ the same outcome and I/O events. Both theories check closure and theorem tags.
 The next step is to instantiate the Pancake refinement with the proved baseline
 installation, source/configuration premises, and resource condition, then
 compose bootstrap execution and export/replay the full challenge Certificate.
+
+## Full baseline challenge Certificate
+
+`initBaselineRefinementTheory` passed a clean build (143 s observed),
+instantiating the Pancake-to-fixed-challenge theorem with the exact compilation,
+source state, installed memory, configuration, layout, and stack-resource facts.
+`baseline_native_refinement` refines the fixed source behavior whenever it is
+not Fail; its resource condition is fully discharged.
+
+`initBaselineCertificateTheory` passed a clean build (144 s observed). It
+extracts finite native execution, composes the checked bootstrap, preserves the
+source outcome and I/O events, and applies the fixed observation rules. Its
+closed, tag-checked final theorem is:
+
+```
+|- initChallenge.Certificate initBaselineRom.baselineRom initParams.Infinity
+```
+
+The 950,336-byte exported `.build/baseline-rom.bin` matches the committed
+`artifacts/baseline/rom.bin` byte for byte. The proof uses no participant-defined
+challenge statement and no admitted facts. The tested HOL revision remains
+`7f769972f0acf26df39facd83339c05a66d9ff26`.
+
+A replayable article and positive run through the single Python verifier are
+still required. The standard HOL kernel used for these checked builds does not
+retain OpenTheory proof traces, so the saved theorem alone is not an exported
+article. Export/replay remains explicit unfinished work.

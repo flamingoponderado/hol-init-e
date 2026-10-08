@@ -11,8 +11,9 @@ HOL has proved that the full top-level Pancake compilation returns the
 904,476-byte native RISC-V artifact. The fixed challenge evaluator also has a
 checked finite bootstrap execution to native entry, and the resulting ordinary
 memory agrees with the fixed source state.
-**A complete baseline challenge certificate is not yet proved.** Native code
-alone is not a bootstrapped challenge submission.
+HOL now proves the full fixed challenge Certificate for the 950,336-byte
+bootstrapped baseline ROM with score Infinity. **The replayable article and
+positive Python verifier run remain unfinished.**
 
 ## Fixed challenge and untrusted submissions
 
@@ -96,12 +97,12 @@ An instruction check on baseline compiler output is not a replacement for it.
 The current restricted step reuses upstream L3 semantics. Agreement with the
 pinned reduced Lean decoder and step remains to be proved; the challenge's
 initial state and oracle hooks are fixed in `initMachine` and `initSubmission`.
-The compiler correctness theorem still needs a bridge to this evaluator.
+The compiler correctness theorem is connected to this fixed evaluator.
 
 ## Reproduce the compiler and verifier
 
 ```sh
-python3 tools/build.py --hol /path/to/HOL initArtifactsTheory.uo
+python3 tools/build.py --hol /path/to/HOL initBaselineCertificateTheory
 python3 tools/prepare_verifier.py --hol /path/to/HOL
 python3 verifier/verify.py --local /path/to/submission --hol /path/to/HOL
 ```
@@ -124,9 +125,8 @@ See [experiment results](experiments/RESULTS.md) for the compiler results and
 ## Remaining certificate obligations
 
 1. Prove agreement with the pinned reduced Lean decoder and machine step.
-2. Instantiate the checked Pancake-to-challenge refinement for the baseline,
-   including the remaining source/machine-state premises.
-3. Prove the complete baseline `Certificate` and export a replayable article.
+2. Export the proved baseline `Certificate` as a replayable article and pass
+   the full Python verifier with frozen bytecode and score literals.
 
 The full compiler installation predicate (`pan_installed`) is proved for states
 related to the checked bootstrap final state, including native bytes, bitmap

@@ -1036,3 +1036,16 @@ and tag checked.
 
 The full Pancake composition and concrete resource bound still need checking;
 these results do not yet establish the baseline `Certificate`.
+
+## Checked input for stack analysis
+
+`initStackInputTheory` passed a clean build (127 s observed). It uses
+`cv_compute` to check the register-allocation hint and produce the optimized
+word program. `optimized_word_compilation` proves that this literal is exactly
+the result of the ordinary `word_to_word` compiler on the fixed guest input.
+Total projections are used for CV translation; a separate checked theorem
+requires compilation success. The exported compilation theorem is closed and
+tag checked.
+
+This provides the actual compiler output for a compact stack-bound checker;
+it does not yet prove a stack bound or the full `Certificate`.

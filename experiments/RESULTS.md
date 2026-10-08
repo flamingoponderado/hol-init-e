@@ -995,3 +995,23 @@ compiler proof that a correctly installed image establishes `state_rel` for
 `make_init`, including external calls and shared-memory metadata. The theorem
 is closed and tag checked. The same theory proves that `filter_skip` preserves
 and reflects `no_install`, supporting the challenge-specific semantics bridge.
+
+## Complete native no-install simulation
+
+`initChallengeCompileTheory` passed a clean HOL build (360 s observed).
+`challenge_compile_correct` proves that every non-error laboratory-machine
+execution of code satisfying `no_install` is simulated by the fixed
+`challengeEvaluate`, from related initial states and a tied oracle. It covers
+ordinary instructions, all supported shared-memory widths, jumps, conditional
+jumps, calls, label addresses, external callbacks, and halt. The dynamic-install
+case is excluded by the stated `no_install` premise.
+
+The proof uses the previously checked restricted-target instruction simulation;
+it does not replace the challenge cache hook with the upstream install hook.
+The exported theorem is closed and tag checked. Concrete 64-bit address
+identities are proved with word arithmetic. Temporary debugging hooks were
+removed before the clean build.
+
+Lifting this result to observable semantics and the full Pancake compiler,
+proving the resource bound, assembling `Certificate`, and positive article
+replay remain outstanding.

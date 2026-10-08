@@ -140,16 +140,20 @@ def author_source(source, target, work, hint=None):
         conversion = """(* Computed leaves are checked again by the standard EVAL converter. *)
 fun compact_EVAL tm =
   let
-    val expanded = REWRITE_CONV
+    val expanded = QCONV (REWRITE_CONV
       [initCompilationInputTheory.guestConfig_def,
-       initCompilationInputTheory.pancakeRiscvConfig_def] tm;
+       initCompilationInputTheory.pancakeRiscvConfig_def]) tm;
     val input = rhs (concl expanded);
-    val _ = if List.exists
+    val unresolved = List.filter
       (fn c => List.exists (fn thy => thy = #Thy (dest_thy_const c)) candidate_theories)
-      (find_terms is_const input) then raise Fail "candidate constant in EVAL export"
-      else ();
+      (find_terms is_const input);
+    val _ = if null unresolved then () else
+      (List.app (fn c => let val {Thy,Name,...} = dest_thy_const c
+        in print ("EVAL_CANDIDATE " ^ Thy ^ "$" ^ Name ^ "\\n") end) unresolved;
+       raise Fail "candidate constant in EVAL export");
     val evaluated = Lib.with_flag (TraceMode.mode,TraceMode.NoTrace) EVAL input;
-  in TRANS expanded evaluated end;
+  in TRANS expanded evaluated end
+  handle e => (print ("EVAL_EXPORT_ERROR " ^ General.exnMessage e ^ "\\n"); raise e);
 val compact_EVAL_TAC = CONV_TAC compact_EVAL;
 """
         text = text.replace(marker, conversion + marker)
@@ -168,7 +172,10 @@ val _ = QUse.use {json.dumps(str(ROOT/'tools/allocationHintLib.sml'))};
 val colours = allocationHintLib.read {json.dumps(str(hint))};
 '''
     result = work/'initBytecodeScript.sml'
-    result.write_text(text[:first]+replacement+text[last:])
+    recorded = text[:first]+replacement+text[last:]
+    recorded = recorded.replace('cv_trans_deep_embedding EVAL allocation_def',
+        'cv_trans_deep_embedding (Lib.with_flag (TraceMode.mode,TraceMode.NoTrace) EVAL) allocation_def')
+    result.write_text(recorded)
     return result
 
 

@@ -18,3 +18,5 @@ logs/
 
 .export-baseline/
 .export-baseline-checkpoint/
+
+.export-baseline-tail/

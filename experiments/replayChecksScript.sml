@@ -87,6 +87,10 @@ val _ = must_reject "forged byte literal definition"
   (fn () => (strictReplayLib.resolve
     [mk_thm([],``sanitizedTestBytes = [0w;255w;17w]``)] empty ([],byte_request); ()));
 
+val _ = strictReplayLib.resolve [] empty
+  ([],``(a <=> b) ==> (b ==> (c <=> d)) ==> ((a ==> c) <=> (b ==> d))``);
+val _ = must_reject "false propositional request"
+  (fn () => (strictReplayLib.bool_taut ``a /\ ~a``; ()));
 val _ = strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 3``;
 val _ = must_reject "false fixed EVAL request"
   (fn () => (strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 4``; ()));

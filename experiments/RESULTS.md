@@ -1211,3 +1211,15 @@ The standard kernel separately passed the literal-request smoke replay and
 rejected changed bytes and forged literal definitions. The real verifier also
 loaded all 904,476 native byte literals and rejected an unrelated proof at the
 exact-conclusion check.
+
+### Full compiler proof export
+
+The author recorded the full checked register allocation and RISC-V backend
+computation in a 57,621,218-byte article. Its exported native binary is exactly
+904,476 bytes with SHA-256
+`4403ff7d9c7b663ba20a4e9c961547b2548530a56b15f238248886763009489e`,
+matching the committed compilation artifact. Standard HOL separately evaluated
+the complete allocation-literal conversion. The compact refinement article also
+exports successfully after recording configuration unfolding before fixed
+`EVAL` requests. Independent replay of the complete dependency chain is still
+outstanding.

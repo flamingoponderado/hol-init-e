@@ -109,10 +109,27 @@ fun fixed_eval c =
       else ();
   in EQT_ELIM (bossLib.EVAL c) end;
 
+fun bool_taut c =
+  let
+    val (variables,body) = strip_forall c;
+    fun propositional tm =
+      if is_var tm then type_of tm = bool
+      else if aconv tm T orelse aconv tm F then true
+      else let val (f,args) = strip_comb tm
+               val {Thy,Name,...} = dest_thy_const f
+           in Thy = "bool" andalso
+              List.exists (fn n => n = Name) ["=","==>","/\\","\\/","~"] andalso
+              List.all propositional args end
+           handle HOL_ERR _ => false;
+    val _ = if propositional body then () else reject "not a propositional request";
+  in GENL variables (tautLib.TAUT_PROVE body) end;
+
 fun logical_compute c =
   EQT_ELIM (QCONV (SIMP_CONV bool_ss [boolTheory.FUN_EQ_THM]) c)
   handle HOL_ERR _ =>
-    (fixed_eval c handle HOL_ERR _ => EQT_ELIM (cv_transLib.cv_eval c));
+    (bool_taut c handle HOL_ERR _ =>
+      (fixed_eval c handle HOL_ERR _ => EQT_ELIM (cv_transLib.cv_eval c))
+      | Fail _ => (fixed_eval c handle HOL_ERR _ => EQT_ELIM (cv_transLib.cv_eval c)));
 
 (* Computation requests are re-proved by the local HOL kernel. An article
    cannot make the result trusted merely by labelling it an axiom. *)

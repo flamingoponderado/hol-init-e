@@ -145,7 +145,8 @@ python3 tools/package_baseline.py --output /path/to/new-submission
 ```
 
 `--only THEORY` exports one dependency; `--start-at THEORY` resumes a suffix of
-the dependency order. The author patch records proofs, supports CV computation
+the dependency order. `--stop-before THEORY` bounds a suffix for separate
+export batches. The author patch records proofs, supports CV computation
 requests, and emits dictionary cleanup. Exported baseline constants are renamed
 into the fresh candidate namespace. Article compaction preserves inference
 commands while releasing dictionary objects at their last use. Neither the
@@ -159,7 +160,9 @@ commands, CV evaluation, and compacted articles. A literal-decoding request is
 re-proved with kernel inference rules and matched against the verifier's own
 sanitized byte constant. Fixed-vocabulary `EVAL` requests are also recomputed by
 the standard kernel; this path rejects candidate-defined constants. Propositional
-congruence requests are discharged with HOL’s tautology prover. Regression
+congruence requests are discharged with HOL’s tautology prover. The lookup set
+includes exactly HOL’s four foundational axioms (`BOOL_CASES_AX`, `ETA_AX`,
+`SELECT_AX`, `INFINITY_AX`) alongside the fixed library theorems. Regression
 checks reject changed bytes, forged literal
 definitions, false results, missing or forged equations, unrelated conclusions, and attempts
 to replace fixed constants. Full baseline package assembly, size limits, and

@@ -4,6 +4,10 @@ structure strictReplayLib =
 struct
 open HolKernel boolLib bossLib;
 
+(* These are exactly HOL's fixed foundational axioms, not article requests. *)
+val kernel_axioms = [boolTheory.BOOL_CASES_AX, boolTheory.ETA_AX,
+                     boolTheory.SELECT_AX, boolTheory.INFINITY_AX];
+
 fun reject s = raise Fail ("certificate replay: " ^ s);
 fun checked th =
   if Tag.isEmpty (Thm.tag th) orelse Tag.isDisk (Thm.tag th) then th

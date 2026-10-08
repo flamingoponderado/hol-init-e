@@ -3,7 +3,7 @@ load "strictReplayLib";
 open HolKernel boolLib bossLib;
 val _ = PolyML.print_depth 0;
 val fixed = "OpenTheoryReaderContext" :: "cv_type" :: ancestry "cv_type";
-val trusted = List.concat (map (fn thy => map snd (DB.definitions thy @ DB.theorems thy)) fixed);
+val trusted = strictReplayLib.kernel_axioms @ List.concat (map (fn thy => map snd (DB.definitions thy @ DB.theorems thy)) fixed);
 val _ = new_theory "candidateCertificate";
 val reader = strictReplayLib.reader trusted;
 val reader = {const_name= #const_name reader, tyop_name= #tyop_name reader,

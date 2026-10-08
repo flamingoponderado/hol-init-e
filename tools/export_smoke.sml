@@ -11,6 +11,7 @@ val _ = Logging.set_const_name_handler
 val _ = Logging.set_tyop_name_handler
   (fn {Thy,Tyop} => (["HOL4",Thy],Tyop));
 val _ = Logging.raw_start_logging [] (TextIO.openOut "cv-smoke.art");
+val _ = Logging.export_thm boolTheory.SELECT_AX;
 val specs = gen_new_specification("smoke_pair",
  CONJ (ASSUME ``leftValue = cv$Num 2``) (ASSUME ``rightValue = cv$Num 5``));
 val _ = Logging.export_thm specs;

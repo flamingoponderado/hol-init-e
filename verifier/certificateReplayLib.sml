@@ -13,7 +13,7 @@ fun replay input =
     val literal_facts = DB.definitions "submissionLiterals";
     val fixed_facts = List.concat (map (fn thy =>
       DB.definitions thy @ DB.theorems thy) fixed_theories);
-    val trusted = map snd (literal_facts @ fixed_facts);
+    val trusted = strictReplayLib.kernel_axioms @ map snd (literal_facts @ fixed_facts);
     val statement = expected ();
     val _ = new_theory "candidateCertificate";
     val result = strictReplayLib.read trusted statement input;

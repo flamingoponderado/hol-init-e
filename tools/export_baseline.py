@@ -185,6 +185,7 @@ def main():
     parser.add_argument('--author-hol', type=Path, required=True)
     parser.add_argument('--build-dir', type=Path, default=ROOT/'.build')
     parser.add_argument('--output', type=Path, default=ROOT/'.export-baseline')
+    parser.add_argument('--stop-before', help='stop before this theory when exporting a suffix')
     parser.add_argument('--resume', action='store_true', help='reuse unchanged author articles; final independent replay is still required')
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument('--only', help='export just one module from the baseline closure')
@@ -206,6 +207,10 @@ def main():
     if selected and selected not in candidates:
         parser.error('selection must name a baseline-specific theory')
     todo = [args.only] if args.only else candidates[candidates.index(args.start_at):] if args.start_at else candidates
+    if args.stop_before:
+        if args.only or args.stop_before not in todo:
+            parser.error('--stop-before must name a theory in the selected suffix')
+        todo = todo[:todo.index(args.stop_before)]
     for target in todo:
         work = output/target
         work.mkdir(exist_ok=True)

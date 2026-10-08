@@ -3,6 +3,8 @@ Ancestors initParams
 Libs preamble cv_transLib strictReplayLib
 
 val empty = Net.empty : thm Net.net;
+val _ = List.app (fn th => ignore (strictReplayLib.resolve
+  strictReplayLib.kernel_axioms empty ([],concl th))) strictReplayLib.kernel_axioms;
 val _ = strictReplayLib.resolve [TRUTH] empty ([],T);
 val _ = strictReplayLib.resolve [] empty ([],``1n + 2 = 3``);
 val _ = strictReplayLib.resolve [numeralTheory.numeral_lt] empty

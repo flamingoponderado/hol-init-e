@@ -1127,3 +1127,21 @@ ordinary compiler, uses the checked optimized word program, and applies the
 proved frame-map correspondence. All exported theorems are closed and tag
 checked. The baseline resource-limit and source/machine-state instantiation,
 full challenge Certificate, and positive verifier replay remain.
+
+## Baseline resource condition and finite execution
+
+`initBaselineLimitsTheory` passed a clean build (137 s observed). It proves
+that the compiler's `read_limits` stack capacity at the checked baseline native
+entry is greater than 7,480 words, including the runtime's reserved storage.
+`baseline_bounded_compilation` combines this with the exact compilation result
+and proves its precise `option_lt` resource condition.
+
+`initChallengeTotalTheory` passed a clean build (28 s observed). It proves the
+fixed challenge machine semantics always has a behavior, using clock/trace
+monotonicity for the divergence case. `challenge_singleton_termination` turns
+refinement to a terminating behavior into an actual finite evaluator run with
+the same outcome and I/O events. Both theories check closure and theorem tags.
+
+The next step is to instantiate the Pancake refinement with the proved baseline
+installation, source/configuration premises, and resource condition, then
+compose bootstrap execution and export/replay the full challenge Certificate.

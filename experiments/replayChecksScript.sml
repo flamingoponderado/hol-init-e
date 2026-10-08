@@ -95,6 +95,7 @@ val _ = strictReplayLib.bool_taut
   ``(a <=> b) ==> (b ==> (c <=> d)) ==> ((a ==> c) <=> (b ==> d))``;
 val _ = must_reject "false propositional request"
   (fn () => (strictReplayLib.bool_taut ``a /\ ~a``; ()));
+val _ = strictReplayLib.logical_compute ``!x:'a # 'b. x = (FST x,SND x)``;
 val _ = strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 3``;
 val _ = must_reject "symbolic recursive evaluation request"
   (fn () => (strictReplayLib.fixed_eval

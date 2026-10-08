@@ -74,6 +74,6 @@
   "verifier/check.sml": "d109bdefcc3f876886351f1b99161eb9a0f939059590c810fca67eceef7a8bc2",
   "verifier/literalDecodeLib.sml": "1b26f50fd1f680a1bb6d51bf4791e082ca3ea4479e91953aa4bf24c97d23c55e",
   "verifier/prepareHeap.sml": "be8a94b3b335bb0a57ab235b82a93c1ca81d48b460e523a8a4eb76b873e035b1",
-  "verifier/strictReplayLib.sml": "e29a01bcdb7801e50d2e43808dba2d47a0ff340444144730d5b8725a48662b5f",
+  "verifier/strictReplayLib.sml": "d82c500fbc54bad5620efdfe1db6fd947ac662b7b105a26bf84bffd276375628",
   "verifier/verify.py": "2cef783f665960a92b0ca2b6ccbab07274d8bf650fb0522abb1b59591dc6289e"
 }

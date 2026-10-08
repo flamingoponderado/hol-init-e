@@ -131,8 +131,23 @@ fun bool_taut c =
     val _ = if propositional body then () else reject "not a propositional request";
   in GENL variables (tautLib.TAUT_PROVE body) end;
 
+fun logical_simp c =
+  EQT_ELIM (QCONV (SIMP_CONV bool_ss [boolTheory.FUN_EQ_THM, pairTheory.PAIR, combinTheory.I_THM]) c);
+
+(* Keep this early simplifier away from large computation literals. *)
+fun small_logical tm =
+  let
+    exception TooLarge;
+    fun visit 0 _ = raise TooLarge
+      | visit n t =
+          if is_comb t then let val (f,x) = dest_comb t
+                            in visit (visit (n-1) f) x end
+          else if is_abs t then visit (n-1) (snd(dest_abs t))
+          else n-1;
+  in (ignore(visit 256 tm); true) handle TooLarge => false end;
+
 fun logical_compute c =
-  EQT_ELIM (QCONV (SIMP_CONV bool_ss [boolTheory.FUN_EQ_THM]) c)
+  logical_simp c
   handle HOL_ERR _ =>
     (bool_taut c handle HOL_ERR _ =>
       (fixed_eval c handle HOL_ERR _ => EQT_ELIM (cv_transLib.cv_eval c))
@@ -171,13 +186,22 @@ fun resolve trusted =
     val patterns = List.foldl
       (fn (th,net) => Net.insert(snd(strip_forall(concl th)),th) net)
       Net.empty (List.concat(map variants trusted));
-  in fn proved => fn seq as (_,c) =>
+  in fn proved => fn seq as (hs,c) =>
     case List.find (same_sequent seq) (Net.index c index @ Net.index c proved) of
       SOME th => checked th
     | NONE =>
       (case instance (Net.match (snd(strip_forall c)) patterns) seq of
          SOME th => checked th
-       | NONE => resolve_fallback trusted proved seq)
+       | NONE =>
+           let val simple = if null hs andalso small_logical c then
+                 SOME (logical_simp c handle HOL_ERR _ => bool_taut c)
+                 handle HOL_ERR _ => NONE | Fail _ => NONE
+               else NONE
+           in case simple of
+                SOME th => if same_sequent seq th then checked th
+                           else resolve_fallback trusted proved seq
+              | NONE => resolve_fallback trusted proved seq
+           end)
   end;
 
 (* Logical names may contain punctuation. Only the ML theorem binding needs

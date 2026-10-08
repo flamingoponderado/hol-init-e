@@ -1087,3 +1087,32 @@ with `word_to_stack.compile_prog`.
 
 The program-specific ranking witness and its connection to `compile_prog_max`
 remain to be checked. These results alone do not prove the full Certificate.
+
+## Checked concrete stack certificate
+
+`initStackEdgesTheory` passed a clean build (228 s observed), computing the
+call edges of the exact optimized word program. `tools/build_stack_ranks.py`
+constructs an untrusted ranking from that data: 826 functions, maximum rank 39,
+entry function 64 at rank 39. No correctness theorem depends on the generator.
+
+`initStackCertificateTheory` passed a clean build (101 s observed, plus 8 s
+for the rank-data theory). Its `cv_compute` check validates every rank, callee
+presence, continuation, handler, and frame-size condition directly against the
+compiled program. `optimized_stack_bound` proves that the full entry call
+graph has a defined depth of at most 7,480 words (59,840 bytes). This theorem
+is closed and tag checked.
+
+The computed maximum frame size is exactly 92 words.
+`initStackFrameProofTheory` passed a clean build (96 s observed), proving that
+the computed frame map is exactly the stack compiler's `stack_frame_size` map.
+The connection to the full compilation theorem is checked separately in
+`initStackLimitTheory`; the challenge Certificate still requires baseline
+instantiation and positive verifier replay.
+
+To regenerate and check the compact witness:
+
+```sh
+python3 tools/build.py --hol ../HOL-init-e initStackEdgesTheory
+python3 tools/build_stack_ranks.py .build/stack-edges.txt experiments/initStackRanksDataScript.sml
+python3 tools/build.py --hol ../HOL-init-e initStackCertificateTheory initStackFrameProofTheory
+```

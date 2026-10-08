@@ -28,3 +28,8 @@ val named_expected = mk_eq (lhs decoded_expected,named_literal);
 val _ = case List.find (strictReplayLib.same_sequent ([],named_expected)) (Net.listItems proved) of
   SOME th => (strictReplayLib.checked th; print "LITERAL_REQUEST_REPLAY_OK\n")
 | NONE => raise Fail "missing recomputed literal binding";
+
+val eager_expected = ``(p:bool) ==> p``;
+val _ = case List.find (strictReplayLib.same_sequent ([],eager_expected)) (Net.listItems proved) of
+  SOME th => ignore (strictReplayLib.checked th)
+| NONE => raise Fail "missing eager subgoal proof";

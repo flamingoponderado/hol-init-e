@@ -153,7 +153,10 @@ commands while releasing dictionary objects at their last use. Neither the
 patch nor author caches are used to accept a submission. Large CV and byte-list
 spines are serialized without ordering every suffix in the writer dictionary.
 The exporter reuses the allocation hint from the prior build as data; its full
-compiler evaluation still checks the hint before returning bytes.
+compiler evaluation still checks the hint before returning bytes. Large literal
+conversions use independently recomputed evaluation requests. The suffix exporter
+records shared helper proofs and solved instruction goals separately, then clears
+its temporary dictionary before continuing the final conjunction proof.
 
 The smoke regression independently replays fresh definitions, ordinary proof
 commands, CV evaluation, and compacted articles. A literal-decoding request is

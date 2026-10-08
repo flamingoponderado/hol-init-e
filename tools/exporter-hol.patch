@@ -1,5 +1,17 @@
+diff --git a/src/opentheory/postbool/Logging.sig b/src/opentheory/postbool/Logging.sig
+index 55b9deb99..fb71fd901 100644
+--- a/src/opentheory/postbool/Logging.sig
++++ b/src/opentheory/postbool/Logging.sig
+@@ -7,6 +7,7 @@ val raw_start_logging : (OTDirective * string) list -> TextIO.outstream -> unit
+ val start_logging : string -> unit
+ val export_thm    : Thm.thm -> Thm.thm
+ val stop_logging  : unit -> unit
++val flush_dictionary : unit -> unit
+
+ type thy_tyop  = OpenTheoryMap.thy_tyop
+ type thy_const = OpenTheoryMap.thy_const
 diff --git a/src/opentheory/postbool/Logging.sml b/src/opentheory/postbool/Logging.sml
-index 0bf744b24..3ea12908f 100644
+index 0bf744b24..5b185cdcd 100644
 --- a/src/opentheory/postbool/Logging.sml
 +++ b/src/opentheory/postbool/Logging.sml
 @@ -57,6 +57,8 @@ val proof_type = let open Thm fun
@@ -84,9 +96,12 @@ index 0bf744b24..3ea12908f 100644
      val _ = if !verbosity >= 4 then HOL_MESG("Finish proof for "^(Susp.force ths)) else ()
      (*
      val _ = log_comment(pt^")")
-@@ -714,9 +744,10 @@ in (log_term, log_thm, reset_dict,
+@@ -713,10 +743,13 @@ in (log_term, log_thm, reset_dict,
+     set_tyop_name_handler, reset_tyop_name_handler)
  end
 
++fun flush_dictionary () = log_clear ();
++
  val definitions = ref []
 +val export_count = ref 0
 
@@ -96,7 +111,7 @@ index 0bf744b24..3ea12908f 100644
     definitions := [])
 
  fun export_thm th = let
-@@ -732,6 +763,11 @@ fun export_thm th = let
+@@ -732,6 +765,11 @@ fun export_thm th = let
        val _ = log_list log_term (hyp th)
        val _ = log_term (concl th)
        val _ = log_command "thm"

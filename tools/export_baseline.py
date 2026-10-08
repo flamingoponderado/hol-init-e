@@ -134,6 +134,40 @@ val _ = print "ALLOCATION_HINT_EXTRACTED\\n";
 
 
 def author_source(source, target, work, hint=None):
+    if target == 'initConfigNumbers':
+        text = source.read_text().replace('cv_trans_deep_embedding EVAL config_numbers_def',
+            'cv_trans_deep_embedding (Lib.with_flag (TraceMode.mode,TraceMode.NoTrace) EVAL) config_numbers_def')
+        result = work/'initConfigNumbersScript.sml'
+        result.write_text(text)
+        return result
+    if target == 'initBootstrapChallengeSuffixSteps':
+        text = source.read_text()
+        marker = 'Theorem bootstrap_challenge_suffix_steps:'
+        compact = """(* Export each solved instruction goal before constructing the final
+   conjunction, retaining checked sequents instead of all primitive traces. *)
+fun compact_suffix_step pc goal context =
+  let val (goals,validate) = suffix_step_tac pc goal context
+  in if null goals then
+       let val th = validate []
+           val _ = Logging.export_thm th
+           val _ = Logging.flush_dictionary ()
+           val _ = PolyML.fullGC ()
+       in ([],fn _ => th) end
+     else (goals,validate)
+  end;
+"""
+        helpers = """val _ = List.app (ignore o Logging.export_thm)
+  (enc_lengths @ membership @ state_rules @ memory_rules @ failure_rules);
+val _ = Logging.flush_dictionary ();
+val _ = PolyML.fullGC ();
+"""
+        text = text.replace('Theorem suffix_store_below:', helpers + 'Theorem suffix_store_below:')
+        text = text.replace(marker, compact + marker)
+        text = text.replace('conj_tac >- suffix_step_tac pc', 'conj_tac >- compact_suffix_step pc')
+        text = text.replace('suffix_step_tac (List.last pcs)', 'compact_suffix_step (List.last pcs)')
+        result = work/'initBootstrapChallengeSuffixStepsScript.sml'
+        result.write_text(text)
+        return result
     if target == 'initBaselineRefinement':
         text = source.read_text().replace('EVAL_TAC', 'compact_EVAL_TAC')
         marker = 'Theorem compiler_target_config:'

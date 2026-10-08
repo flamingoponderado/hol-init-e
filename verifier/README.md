@@ -146,7 +146,9 @@ python3 tools/package_baseline.py --output /path/to/new-submission
 
 `--only THEORY` exports one dependency; `--start-at THEORY` resumes a suffix of
 the dependency order. `--stop-before THEORY` bounds a suffix for separate
-export batches. The author patch records proofs, supports CV computation
+export batches. Workers default to a 24 GiB Poly/ML heap limit and one GC thread;
+`--maxheap-mib` and `--gc-threads` adjust these author resource settings.
+The author patch records proofs, supports CV computation
 requests, and emits dictionary cleanup. Exported baseline constants are renamed
 into the fresh candidate namespace. Article compaction preserves inference
 commands while releasing dictionary objects at their last use. Neither the

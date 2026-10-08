@@ -227,7 +227,8 @@ def replay_frozen(frozen, timeout=600, memory_gib=32, *, trusted=None, work=None
         with (work/'replay.log').open('wb') as log:
             try:
                 command = hidden_replay_command(
-                    [str(executable), '--holstate='+str(heap), str(root/'verifier/check.sml')],
+                    [str(executable), '--maxheap', str(memory_gib*768), '--gcthreads=1',
+                     '--holstate='+str(heap), str(root/'verifier/check.sml')],
                     hide, work, [heap, root/'verifier', executable.parent.parent])
                 process = subprocess.run(command, cwd=work, env=environment,
                     stdout=log, stderr=subprocess.STDOUT, timeout=timeout,

@@ -107,6 +107,8 @@ fun decode_literal facts c =
    must supply their checked equations through the raw CV path above. *)
 fun fixed_eval c =
   let
+    val _ = if is_forall c orelse is_exists c orelse not (null (free_vars c))
+            then reject "symbolic request requires a proved library fact" else ();
     val _ = if List.exists
       (fn tm => #Thy (dest_thy_const tm) = current_theory ())
       (find_terms is_const c) then reject "candidate constant in fixed EVAL request"
@@ -138,7 +140,7 @@ fun logical_compute c =
 
 (* Computation requests are re-proved by the local HOL kernel. An article
    cannot make the result trusted merely by labelling it an axiom. *)
-fun resolve trusted proved (hs,c) =
+fun resolve_fallback trusted proved (hs,c) =
   let val facts = trusted @ Net.listItems proved
   in case List.find (same_sequent (hs,c)) facts of
     SOME th => checked th
@@ -158,6 +160,25 @@ fun resolve trusted proved (hs,c) =
          else reject "computation proved a different statement" end
   end
   handle cv_repLib.NeedsTranslation _ => reject "no checked computation for requested theorem";
+
+(* Most requests name a theorem already present verbatim. Index that path
+   once for the fixed library and use the reader's existing theorem net for
+   article facts, retaining exact sequent and tag checks after lookup. *)
+fun resolve trusted =
+  let
+    val index = List.foldl (fn (th,net) => Net.insert(concl th,th) net) Net.empty trusted;
+    fun variants th = th :: CONJUNCTS (SPEC_ALL (checked th));
+    val patterns = List.foldl
+      (fn (th,net) => Net.insert(snd(strip_forall(concl th)),th) net)
+      Net.empty (List.concat(map variants trusted));
+  in fn proved => fn seq as (_,c) =>
+    case List.find (same_sequent seq) (Net.index c index @ Net.index c proved) of
+      SOME th => checked th
+    | NONE =>
+      (case instance (Net.match (snd(strip_forall c)) patterns) seq of
+         SOME th => checked th
+       | NONE => resolve_fallback trusted proved seq)
+  end;
 
 (* Logical names may contain punctuation. Only the ML theorem binding needs
    an identifier; hexadecimal byte encoding is injective and leaves the logical

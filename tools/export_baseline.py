@@ -105,7 +105,7 @@ val _ = print "BASELINE_MODULE_EXPORT_OK\\n";
 '''
 
 
-def allocation_hint(build, standard, work):
+def allocation_hint(build, standard, work, runtime):
     """Reuse data from the prior build; the recorded compiler checks this hint."""
     q = json.dumps
     output = work/'allocation.term'
@@ -125,7 +125,7 @@ val _ = if aconv (allocationHintLib.read {q(str(output))}) hint then ()
 val _ = print "ALLOCATION_HINT_EXTRACTED\\n";
 ''')
     with (work/'hint.log').open('w') as log:
-        result = subprocess.run([str(standard/'bin/hol'), 'run',
+        result = subprocess.run([str(standard/'bin/hol'), *runtime, 'run',
             str(standard/'sigobj/holmake_not_interactive.uo'), str(script)],
             cwd=work, stdout=log, stderr=subprocess.STDOUT)
     if result.returncode or 'ALLOCATION_HINT_EXTRACTED' not in (work/'hint.log').read_text():
@@ -163,9 +163,10 @@ val compact_record_normalize = compact_eval THENC
         result = work/'initConfigNumbersScript.sml'
         result.write_text(text)
         return result
-    if target == 'initBootstrapChallengeSuffixSteps':
+    if target in ('initBootstrapSuffixSteps', 'initBootstrapChallengeSuffixSteps'):
         text = source.read_text()
-        marker = 'Theorem bootstrap_challenge_suffix_steps:'
+        marker = ('Theorem bootstrap_challenge_suffix_steps:' if 'Challenge' in target
+                  else 'Theorem bootstrap_suffix_steps:')
         compact = """(* Export each solved instruction goal before constructing the final
    conjunction, retaining checked sequents instead of all primitive traces. *)
 fun compact_suffix_step pc goal context =
@@ -188,7 +189,7 @@ val _ = PolyML.fullGC ();
         text = text.replace(marker, compact + marker)
         text = text.replace('conj_tac >- suffix_step_tac pc', 'conj_tac >- compact_suffix_step pc')
         text = text.replace('suffix_step_tac (List.last pcs)', 'compact_suffix_step (List.last pcs)')
-        result = work/'initBootstrapChallengeSuffixStepsScript.sml'
+        result = work/(target + 'Script.sml')
         result.write_text(text)
         return result
     if target == 'initBaselineRefinement':
@@ -243,11 +244,16 @@ def main():
     parser.add_argument('--build-dir', type=Path, default=ROOT/'.build')
     parser.add_argument('--output', type=Path, default=ROOT/'.export-baseline')
     parser.add_argument('--stop-before', help='stop before this theory when exporting a suffix')
+    parser.add_argument('--maxheap-mib', type=int, default=24576, help='Poly/ML heap limit per worker (default: 24576 MiB)')
+    parser.add_argument('--gc-threads', type=int, default=1)
     parser.add_argument('--resume', action='store_true', help='reuse unchanged author articles; final independent replay is still required')
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument('--only', help='export just one module from the baseline closure')
     selection.add_argument('--start-at', help='export this module and those following it in dependency order')
     args = parser.parse_args()
+    if args.maxheap_mib < 1 or args.gc_threads < 1:
+        parser.error('worker heap limit and GC thread count must be positive')
+    runtime = ['--maxheap', str(args.maxheap_mib), '--gcthreads='+str(args.gc_threads)]
     standard, author = args.hol.resolve(), args.author_hol.resolve()
     if standard == author:
         parser.error('author and verifier HOL builds must be separate')
@@ -273,7 +279,7 @@ def main():
         work.mkdir(exist_ok=True)
         article = work/'proof.art'
         script = work/'export.sml'
-        hint = allocation_hint(build, standard, work) if target == "initBytecode" else None
+        hint = allocation_hint(build, standard, work, runtime) if target == "initBytecode" else None
         recorded_source = author_source(sources[target], target, work, hint)
         contents = driver(build, standard, recorded_source, target, candidates, article)
         stamp = work/'complete.json'
@@ -291,7 +297,7 @@ def main():
         script.write_text(contents)
         print(f'Exporting {target}', flush=True)
         with (work/'export.log').open('w') as log:
-            result = subprocess.run([str(author/'bin/hol'), 'run',
+            result = subprocess.run([str(author/'bin/hol'), *runtime, 'run',
                 str(author/'sigobj/holmake_not_interactive.uo'), str(script)],
                 cwd=work, stdout=log, stderr=subprocess.STDOUT)
         if result.returncode or 'BASELINE_MODULE_EXPORT_OK' not in (work/'export.log').read_text():

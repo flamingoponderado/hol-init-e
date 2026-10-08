@@ -1,5 +1,5 @@
 Theory replayChecks
-Ancestors initParams
+Ancestors initParams While
 Libs preamble cv_transLib strictReplayLib
 
 val empty = Net.empty : thm Net.net;
@@ -96,6 +96,10 @@ val _ = strictReplayLib.bool_taut
 val _ = must_reject "false propositional request"
   (fn () => (strictReplayLib.bool_taut ``a /\ ~a``; ()));
 val _ = strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 3``;
+val _ = must_reject "symbolic recursive evaluation request"
+  (fn () => (strictReplayLib.fixed_eval
+    ``!(f:'a -> 'a + 'b) x. While$TAILREC f x =
+       sum$sum_CASE (f x) (While$TAILREC f) combin$I``; ()));
 val _ = must_reject "false fixed EVAL request"
   (fn () => (strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 4``; ()));
 val _ = must_reject "candidate constant in fixed EVAL request"

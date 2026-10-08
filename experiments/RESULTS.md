@@ -1069,3 +1069,21 @@ interactive debugging hooks or admitted facts occur in the source.
 This completes the general compiler/evaluator bridge. The concrete stack bound,
 remaining baseline instantiations, full `Certificate`, and positive verifier
 article replay still need to be completed.
+
+## Compact stack ranking checker
+
+`initStackRankTheory` passed a clean HOL build (31 s observed).
+`call_graph_rank_bound` proves the word compiler's call-tree depth is bounded
+by `(rank(n) + 1) * 187` when all code frames are at most 92 words and every
+direct call has a present, strictly lower-ranked target. The proof covers
+callee deletion, tail calls, continuations, exception handlers, and allocation.
+`checkedRanks_bound` connects a finite executable checker to the full call
+graph. The exported soundness theorems are closed and tag checked.
+
+`initStackFramesTheory` also passed a clean build (322 s observed). It computes
+the frame map and its maximum directly from the checked optimized 64-bit word
+program using `cv_compute`, and proves the per-function frame formula agrees
+with `word_to_stack.compile_prog`.
+
+The program-specific ranking witness and its connection to `compile_prog_max`
+remain to be checked. These results alone do not prove the full Certificate.

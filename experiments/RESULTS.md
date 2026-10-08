@@ -1172,3 +1172,30 @@ A replayable article and positive run through the single Python verifier are
 still required. The standard HOL kernel used for these checked builds does not
 retain OpenTheory proof traces, so the saved theorem alone is not an exported
 article. Export/replay remains explicit unfinished work.
+
+
+## Independent article export and first full-pass replay
+
+The author-only tracing HOL build now succeeds using `tools/prepare_exporter.py`.
+The verifier continues to use the unmodified standard kernel. The author patch
+records CV requests with proved equations and supports bounded dictionary
+lifetimes; `articleReaderLib` adds the writer's missing version-6 commands using
+kernel inference rules and the strict definition/axiom callbacks.
+
+`initProofLibraryTheory` built successfully (43 s observed). Its closure consists
+of generic compiler, semantics, and CV proofs; baseline-specific conclusions are
+excluded. Its local inputs are included in the fixed integrity manifest.
+
+A full `initSimplify` article exported successfully: 143,598,759 bytes before
+compaction and 115,526,261 bytes after. Independent standard-kernel replay
+checked 7,565 exported theorems, including the full guest simplification CV
+computation. After compaction the observed replay process used about 4.5 GB RSS,
+compared with over 70 GB while retaining the original article dictionary.
+This is component evidence, not a full Certificate replay.
+
+`initStructs` also exported (4,723,541 bytes before subsequent compaction).
+The plan contains 81 baseline-specific theories. The updated author exporter
+and its compactor pass the standalone positive replay regression; the strict
+reader also passes the CV equation-selection and rejection checks. The 25 Python
+sanitization/interface tests pass. Complete dependency export, final literal
+binding, package assembly, and positive Python verification remain in progress.

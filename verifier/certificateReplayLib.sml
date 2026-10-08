@@ -9,7 +9,7 @@ fun expected () = list_mk_comb (constant "initChallenge" "Certificate",
    constant "submissionLiterals" "submittedScore"]);
 fun replay input =
   let
-    val fixed_theories = "initChallenge" :: ancestry "initChallenge";
+    val fixed_theories = "OpenTheoryReaderContext" :: "initProofLibrary" :: ancestry "initProofLibrary";
     val literal_facts = DB.definitions "submissionLiterals";
     val fixed_facts = List.concat (map (fn thy =>
       DB.definitions thy @ DB.theorems thy) fixed_theories);

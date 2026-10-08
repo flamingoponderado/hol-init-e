@@ -25,7 +25,7 @@ still performs preflight unless `--replay` is specified. The original
 ## Frozen literals and the exact statement
 
 The verifier checks trusted-file hashes and the CakeML pin, exact file names,
-regular files without symlinks, bounded sizes, and a literal finite/infinite
+regular files without symlinks, bounded sizes (128 MiB ROM, 2 GiB article), and a literal finite/infinite
 score. It reads each candidate file once into an immutable snapshot. Later
 steps use those frozen bytes rather than reopening candidate paths.
 
@@ -49,8 +49,11 @@ instruction restrictions apply when the machine fetches instructions.
 ## Independent replay
 
 `strictReplayLib.sml` supplies OpenTheory reader callbacks. Axiom requests must
-match exact trusted or previously replayed sequents, or be independently proved
-as closed computations by `cv_eval`. It never calls `axiom_in_db`, whose fallback
+match checked library or previously replayed facts (including kernel-checked
+specialization, generalization, and conjunction projection), or be independently
+proved by logical simplification or computation. Article-defined CV functions
+are evaluated from already proved executable equations using `cv_compute`.
+Representation lemmas are not treated as executable equations. It never calls `axiom_in_db`, whose fallback
 admits a theorem. Definitions may introduce only fresh constants/types in the
 operator-created candidate theory. The expected theorem must have no hypotheses
 or untrusted theorem tags and must have the exact fixed conclusion.
@@ -71,8 +74,14 @@ article and a positive full-certificate replay remain outstanding. Tests include
 strict-reader positive examples and a real-process negative test using a valid
 article proving an unrelated statement, including a full 904,476-byte literal
 ROM. `test_replay.py` checks that this reaches the exact-conclusion rejection
-rather than failing during literal loading. HOL's compute primitive is not directly
-exported by its OpenTheory writer; computation requests need independent replay.
+rather than failing during literal loading. An isolated author tracing build now
+exports CV computation requests and their proved equations; the unmodified
+standard verifier kernel recomputes those requests. The first complete guest
+compiler-pass article has independently replayed 7,565 theorems.
+
+The fixed `initProofLibrary` supplies generic compiler, target, semantics, and
+CV lemmas. Its local source dependencies are pinned in the trusted-file manifest.
+It contains no baseline-specific compilation or Certificate theorem.
 
 ## Auditable literal preparation
 
@@ -119,5 +128,31 @@ python3 verifier/verify.py --local /path/to/submission \
   --hide /path/to/submission --hide /path/to/private-data --progress
 ```
 
-The full baseline Certificate and a positive end-to-end replay remain separate
-proof obligations; CLI compatibility does not establish them.
+The full baseline Certificate is proved in HOL. Its complete article package
+and positive end-to-end Python verification remain unfinished.
+
+## Author proof export (in progress)
+
+The author uses a separate tracing-kernel checkout at the tested HOL revision:
+
+```sh
+python3 tools/prepare_exporter.py --hol-source ../HOL-init-e
+python3 tools/test_exporter.py --hol ../HOL-init-e --author-hol ../HOL-init-e-export
+python3 tools/build.py --hol ../HOL-init-e initBaselineCertificateTheory initProofLibraryTheory
+python3 tools/export_baseline.py --hol ../HOL-init-e --author-hol ../HOL-init-e-export --resume
+python3 tools/bind_baseline.py --hol ../HOL-init-e --author-hol ../HOL-init-e-export
+python3 tools/package_baseline.py --output /path/to/new-submission
+```
+
+`--only THEORY` exports one dependency; `--start-at THEORY` resumes a suffix of
+the dependency order. The author patch records proofs, supports CV computation
+requests, and emits dictionary cleanup. Exported baseline constants are renamed
+into the fresh candidate namespace. Article compaction preserves inference
+commands while releasing dictionary objects at their last use. Neither the
+patch nor author caches are used to accept a submission.
+
+The smoke regression independently replays fresh definitions, ordinary proof
+commands, CV evaluation, shared literal-byte decoding, and compacted articles. HOL regression checks reject
+false results, missing or forged equations, unrelated conclusions, and attempts
+to replace fixed constants. Full baseline package assembly, size limits, and
+end-to-end performance still need validation before a release.

@@ -20,7 +20,7 @@ revision = subprocess.check_output(['git','-C',str(hol),'rev-parse','HEAD'],text
 if revision != pin:
     p.error('HOL checkout does not match the tested_hol pin')
 subprocess.run([sys.executable,str(ROOT/'tools/build.py'),'--hol',str(hol),
-    'initChallengeTheory.uo','certificateReplayLib.uo'],check=True)
+    'initProofLibraryTheory.uo','certificateReplayLib.uo'],check=True)
 subprocess.run([str(hol/'bin/hol'),'run',str(hol/'sigobj/holmake_not_interactive.uo'),
     str(ROOT/'verifier/prepareHeap.sml')],cwd=ROOT/'.build',check=True)
 heap = ROOT/'.build/verifier.heap'

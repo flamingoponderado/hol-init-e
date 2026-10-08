@@ -1,5 +1,5 @@
 (* Operator-only preparation: no participant data is read here. *)
-load "initChallengeTheory";
+load "initProofLibraryTheory";
 load "cv_transLib";
 load "strictReplayLib";
 load "certificateReplayLib";

@@ -5,6 +5,9 @@ Libs preamble cv_transLib strictReplayLib
 val empty = Net.empty : thm Net.net;
 val _ = strictReplayLib.resolve [TRUTH] empty ([],T);
 val _ = strictReplayLib.resolve [] empty ([],``1n + 2 = 3``);
+val _ = strictReplayLib.resolve [numeralTheory.numeral_lt] empty
+  ([],``!m n. arithmetic$BIT1 n < arithmetic$BIT1 m <=> n < m``);
+val _ = strictReplayLib.resolve [] empty ([],``COND T = (\t1 t2:bool. t1)``);
 fun must_reject name f =
   if (f (); false) handle HOL_ERR _ => true | Fail _ => true
   then () else raise Fail ("accepted invalid replay: " ^ name);
@@ -38,6 +41,36 @@ val candidate_def = #define_const (strictReplayLib.reader [])
 val _ = must_reject "candidate constant redefinition"
   (fn () => (#define_const (strictReplayLib.reader [])
     {Thy=current_theory (),Name="candidateLiteral"} ``18n``; ()));
+
+(* Replay CV equations for fresh functions, without cv_trans registrations. *)
+Definition candidateCv_def:
+  candidateCv x = cv$cv_add x (cv$Num 7)
+End
+Definition candidateCvOuter_def:
+  candidateCvOuter x = candidateCv (candidateCv x)
+End
+val cv_facts = [candidateCv_def,candidateCvOuter_def];
+val _ = strictReplayLib.resolve cv_facts empty
+  ([],``candidateCvOuter (cv$Num 3) = cv$Num 17``);
+val non_code = prove
+  (``candidateCv x = if T then candidateCv x else cv$Num 0``, simp []);
+val _ = strictReplayLib.resolve (non_code::cv_facts) empty
+  ([],``candidateCvOuter (cv$Num 3) = cv$Num 17``);
+Definition candidateCvEq_def:
+  candidateCvEq x = cv$cv_eq x (cv$Num 3)
+End
+val _ = strictReplayLib.resolve [cvTheory.cv_eq_def,candidateCvEq_def] empty
+  ([],``candidateCvEq (cv$Num 3) = cv$Num 1``);
+val _ = must_reject "wrong CV result"
+  (fn () => (strictReplayLib.resolve cv_facts empty
+    ([],``candidateCvOuter (cv$Num 3) = cv$Num 18``); ()));
+val _ = must_reject "missing CV equation"
+  (fn () => (strictReplayLib.resolve [candidateCvOuter_def] empty
+    ([],``candidateCvOuter (cv$Num 3) = cv$Num 17``); ()));
+val _ = must_reject "forged CV equation"
+  (fn () => (strictReplayLib.resolve
+    [mk_thm([],``candidateCvOuter x = cv$Num 18``)] empty
+    ([],``candidateCvOuter (cv$Num 3) = cv$Num 18``); ()));
 
 Theorem replay_component_checked:
   T

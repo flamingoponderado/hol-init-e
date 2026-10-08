@@ -20,7 +20,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 ROM_LIMIT = 128 * 1024 * 1024
-PROOF_LIMIT = 16 * 1024 * 1024
+PROOF_LIMIT = 2 * 1024 * 1024 * 1024
 FILES = {'rom.bin', 'claim.json', 'certificate.art'}
 
 class Rejected(ValueError): pass

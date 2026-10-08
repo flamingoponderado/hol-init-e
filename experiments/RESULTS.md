@@ -1199,3 +1199,15 @@ and its compactor pass the standalone positive replay regression; the strict
 reader also passes the CV equation-selection and rejection checks. The 25 Python
 sanitization/interface tests pass. Complete dependency export, final literal
 binding, package assembly, and positive Python verification remain in progress.
+
+### Literal binding export
+
+The author exported the full 950,336-byte ROM's exact Certificate binding to
+sanitized bytes and the `Infinity` score. The compact article is 47,987,416 bytes
+(SHA-256 `8f5ad0aef7e19990ed67daa0b5e040eeb0ae9636fd3c66f2ea74bcb31e2c03e6`).
+This is the final binding component, not a self-contained certificate: the
+preceding baseline articles and full independent replay remain required.
+The standard kernel separately passed the literal-request smoke replay and
+rejected changed bytes and forged literal definitions. The real verifier also
+loaded all 904,476 native byte literals and rejected an unrelated proof at the
+exact-conclusion check.

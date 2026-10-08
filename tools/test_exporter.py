@@ -37,6 +37,16 @@ def main():
             'QUse.use '+json.dumps(str(ROOT/'verifier/literalDecodeLib.sml'))+';\n'+
             'QUse.use '+json.dumps(str(ROOT/'tools/export_smoke.sml'))+';\n')
         run(author, exporter, work, 'EXPORT_SMOKE_OK')
+        hint_test = work/'hint.sml'
+        hint_test.write_text('load "sptreeTheory";\nload "sptreeSyntax";\nload "optionSyntax";\n' +
+            'QUse.use '+json.dumps(str(ROOT/'tools/allocationHintLib.sml'))+';\n' +
+            'open HolKernel boolLib bossLib;\n' +
+            'val value = ``[SOME (sptree$BS sptree$LN 2 (sptree$LS 3)); NONE; ' +
+            'SOME (sptree$BN (sptree$LS 1) sptree$LN)] : num sptree$spt option list``;\n' +
+            'val _ = allocationHintLib.write "hint.data" value;\n' +
+            'val _ = if aconv value (allocationHintLib.read "hint.data") then ' +
+            'print "HINT_ROUND_TRIP_OK\\n" else raise Fail "hint differs";\n')
+        run(hol, hint_test, work, 'HINT_ROUND_TRIP_OK')
         build = (ROOT/'.build').resolve()
         loader = work/'replay.sml'
         loader.write_text('holpathdb.extend_db {vname="init-e-hol4",path=' +

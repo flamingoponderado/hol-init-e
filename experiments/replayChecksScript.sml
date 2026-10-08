@@ -87,6 +87,12 @@ val _ = must_reject "forged byte literal definition"
   (fn () => (strictReplayLib.resolve
     [mk_thm([],``sanitizedTestBytes = [0w;255w;17w]``)] empty ([],byte_request); ()));
 
+val _ = strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 3``;
+val _ = must_reject "false fixed EVAL request"
+  (fn () => (strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 4``; ()));
+val _ = must_reject "candidate constant in fixed EVAL request"
+  (fn () => (strictReplayLib.fixed_eval ``sanitizedTestBytes = [0w;255w;17w]``; ()));
+
 Theorem replay_component_checked:
   T
 Proof

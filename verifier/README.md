@@ -157,7 +157,9 @@ compiler evaluation still checks the hint before returning bytes.
 The smoke regression independently replays fresh definitions, ordinary proof
 commands, CV evaluation, and compacted articles. A literal-decoding request is
 re-proved with kernel inference rules and matched against the verifier's own
-sanitized byte constant. Regression checks reject changed bytes, forged literal
+sanitized byte constant. Fixed-vocabulary `EVAL` requests are also recomputed by
+the standard kernel; this path rejects candidate-defined constants. Regression
+checks reject changed bytes, forged literal
 definitions, false results, missing or forged equations, unrelated conclusions, and attempts
 to replace fixed constants. Full baseline package assembly, size limits, and
 end-to-end performance still need validation before a release.

@@ -114,16 +114,14 @@ def allocation_hint(build, standard, work):
 val _ = holpathdb.extend_db {{vname="init-e-hol4",path={q(str(ROOT))}}};
 val _ = loadPath := {q([str(build),str(build/'.hol/objs')])} @ !loadPath;
 load "initBytecodeTheory";
+load "sptreeSyntax";
+load "optionSyntax";
 open HolKernel;
-val _ = Globals.max_print_depth := 100000000;
-val _ = Globals.show_types := true;
+val _ = QUse.use {q(str(ROOT/'tools/allocationHintLib.sml'))};
 val hint = boolSyntax.rhs (concl initBytecodeTheory.allocation_def);
-val text = Parse.term_to_string hint;
-val _ = if aconv (Parse.Term [QUOTE text]) hint then ()
+val _ = allocationHintLib.write {q(str(output))} hint;
+val _ = if aconv (allocationHintLib.read {q(str(output))}) hint then ()
         else raise Fail "allocation hint round trip failed";
-val stream = TextIO.openOut {q(str(output))};
-val _ = TextIO.output(stream,text);
-val _ = TextIO.closeOut stream;
 val _ = print "ALLOCATION_HINT_EXTRACTED\\n";
 ''')
     with (work/'hint.log').open('w') as log:
@@ -136,6 +134,28 @@ val _ = print "ALLOCATION_HINT_EXTRACTED\\n";
 
 
 def author_source(source, target, work, hint=None):
+    if target == 'initBaselineRefinement':
+        text = source.read_text().replace('EVAL_TAC', 'compact_EVAL_TAC')
+        marker = 'Theorem compiler_target_config:'
+        conversion = """(* Computed leaves are checked again by the standard EVAL converter. *)
+fun compact_EVAL tm =
+  let
+    val expanded = REWRITE_CONV
+      [initCompilationInputTheory.guestConfig_def,
+       initCompilationInputTheory.pancakeRiscvConfig_def] tm;
+    val input = rhs (concl expanded);
+    val _ = if List.exists
+      (fn c => List.exists (fn thy => thy = #Thy (dest_thy_const c)) candidate_theories)
+      (find_terms is_const input) then raise Fail "candidate constant in EVAL export"
+      else ();
+    val evaluated = Lib.with_flag (TraceMode.mode,TraceMode.NoTrace) EVAL input;
+  in TRANS expanded evaluated end;
+val compact_EVAL_TAC = CONV_TAC compact_EVAL;
+"""
+        text = text.replace(marker, conversion + marker)
+        result = work/'initBaselineRefinementScript.sml'
+        result.write_text(text)
+        return result
     if target != 'initBytecode':
         return source
     text = source.read_text()
@@ -144,11 +164,8 @@ def author_source(source, target, work, hint=None):
     # No theorem is imported here. The from_word_0_riscv computation below
     # checks the whole hint and is recorded for independent replay.
     replacement = f'''val _ = report "reading untrusted allocation hint";
-val colours = let
-  val stream = TextIO.openIn {json.dumps(str(hint))};
-  val text = TextIO.inputAll stream;
-  val _ = TextIO.closeIn stream;
-  in Parse.Term [QUOTE text] end;
+val _ = QUse.use {json.dumps(str(ROOT/'tools/allocationHintLib.sml'))};
+val colours = allocationHintLib.read {json.dumps(str(hint))};
 '''
     result = work/'initBytecodeScript.sml'
     result.write_text(text[:first]+replacement+text[last:])
@@ -193,7 +210,7 @@ def main():
         stamp = work/'complete.json'
         key_material = contents + recorded_source.read_text()
         if hint is not None:
-            key_material += hint.read_text()
+            key_material += hint.read_text() + (ROOT/"tools/allocationHintLib.sml").read_text()
         key = hashlib.sha256(key_material.encode()).hexdigest()
         if args.resume and stamp.is_file() and article.is_file():
             info = json.loads(stamp.read_text())

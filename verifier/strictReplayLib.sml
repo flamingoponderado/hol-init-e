@@ -99,6 +99,21 @@ fun decode_literal facts c =
      | NONE => reject "decoded bytes differ from the fixed literal"
   end;
 
+(* EVAL requests are limited to the fixed vocabulary. Candidate definitions
+   must supply their checked equations through the raw CV path above. *)
+fun fixed_eval c =
+  let
+    val _ = if List.exists
+      (fn tm => #Thy (dest_thy_const tm) = current_theory ())
+      (find_terms is_const c) then reject "candidate constant in fixed EVAL request"
+      else ();
+  in EQT_ELIM (bossLib.EVAL c) end;
+
+fun logical_compute c =
+  EQT_ELIM (QCONV (SIMP_CONV bool_ss [boolTheory.FUN_EQ_THM]) c)
+  handle HOL_ERR _ =>
+    (fixed_eval c handle HOL_ERR _ => EQT_ELIM (cv_transLib.cv_eval c));
+
 (* Computation requests are re-proved by the local HOL kernel. An article
    cannot make the result trusted merely by labelling it an axiom. *)
 fun resolve trusted proved (hs,c) =
@@ -114,11 +129,9 @@ fun resolve trusted proved (hs,c) =
                    handle HOL_ERR _ => raw_compute facts c
                         | Fail _ => raw_compute facts c)
                  handle HOL_ERR _ =>
-                   (EQT_ELIM (QCONV (SIMP_CONV bool_ss [boolTheory.FUN_EQ_THM]) c)
-                    handle HOL_ERR _ => EQT_ELIM (cv_transLib.cv_eval c))
+                   logical_compute c
                       | Fail _ =>
-                   (EQT_ELIM (QCONV (SIMP_CONV bool_ss [boolTheory.FUN_EQ_THM]) c)
-                    handle HOL_ERR _ => EQT_ELIM (cv_transLib.cv_eval c))
+                   logical_compute c
       in if same_sequent (hs,c) th then checked th
          else reject "computation proved a different statement" end
   end

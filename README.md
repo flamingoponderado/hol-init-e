@@ -64,6 +64,19 @@ interface performs preflight only (exit 2) unless `--replay` is supplied. See
 Use Poly/ML and a built HOL4 checkout with `cv_transLib`. Revisions and source
 hashes are in `provenance.json`. No Lean installation is needed for the build.
 
+The successful full verification used:
+
+- **HOL4:** `7f769972f0acf26df39facd83339c05a66d9ff26`, standard kernel
+  (`Trindemossen 2`); this is `tested_hol` in `provenance.json`.
+- **Poly/ML:** `5.9.2 Release`, configured executable `/usr/bin/poly`, reporting
+  Git version `v5.9.2-311-gd615dad7`.
+
+The separate `HOL` field in `provenance.json` records the imported source's
+upstream provenance, not the HOL checkout used for verification. Earlier native
+artifact manifests retain their original build revisions. The full verification
+record is [artifacts/baseline/verification.json](artifacts/baseline/verification.json).
+
+
 ```sh
 git submodule update --init
 python3 tools/build.py --hol /path/to/HOL

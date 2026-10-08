@@ -55,5 +55,13 @@
   "proof_bytes": 1255970139,
   "outstanding": [
     "Agreement with the pinned reduced Lean decoder and machine step is not proved."
-  ]
+  ],
+  "hol_kernel": "stdknl",
+  "hol_release": "Trindemossen 2",
+  "polyml": {
+    "compiler_version": "5.9.2 Release",
+    "configured_executable": "/usr/bin/poly",
+    "configured_executable_version": "Poly/ML 5.9.2 Release (Git version v5.9.2-311-gd615dad7)",
+    "version_evidence": "HOL executable: PolyML.Compiler.compilerVersion; HOL Systeml.POLY configuration; /usr/bin/poly --version"
+  }
 }

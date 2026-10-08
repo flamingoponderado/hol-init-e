@@ -12,8 +12,9 @@ HOL has proved that the full top-level Pancake compilation returns the
 checked finite bootstrap execution to native entry, and the resulting ordinary
 memory agrees with the fixed source state.
 HOL now proves the full fixed challenge Certificate for the 950,336-byte
-bootstrapped baseline ROM with score Infinity. **The replayable article and
-positive Python verifier run remain unfinished.**
+bootstrapped baseline ROM with score Infinity. The complete article package is
+assembled. **Positive full-certificate acceptance by the Python verifier remains
+unverified.**
 
 ## Fixed challenge and untrusted submissions
 
@@ -125,8 +126,8 @@ See [experiment results](experiments/RESULTS.md) for the compiler results and
 ## Remaining certificate obligations
 
 1. Prove agreement with the pinned reduced Lean decoder and machine step.
-2. Export the proved baseline `Certificate` as a replayable article and pass
-   the full Python verifier with frozen bytecode and score literals.
+2. Pass the assembled baseline `Certificate` package through the full Python
+   verifier with frozen bytecode and score literals.
 
 The full compiler installation predicate (`pan_installed`) is proved for states
 related to the checked bootstrap final state, including native bytes, bitmap

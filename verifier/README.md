@@ -69,8 +69,8 @@ missing/stale prepared verifier. The positional interface without `--replay` nev
 `--local` selects full replay automatically; explicit `--structural-only` is a
 separate successful envelope check and never returns `verified`.
 
-The fixed proposition and replay path are implemented. A baseline certificate
-article and a positive full-certificate replay remain outstanding. Tests include
+The fixed proposition and replay path are implemented, and the complete baseline
+article package is assembled. Positive full-certificate replay remains unverified. Tests include
 strict-reader positive examples and a real-process negative test using a valid
 article proving an unrelated statement, including a full 904,476-byte literal
 ROM. `test_replay.py` checks that this reaches the exact-conclusion rejection
@@ -132,10 +132,10 @@ python3 verifier/verify.py --local /path/to/submission \
   --hide /path/to/submission --hide /path/to/private-data --progress
 ```
 
-The full baseline Certificate is proved in HOL. Its complete article package
-and positive end-to-end Python verification remain unfinished.
+The full baseline Certificate is proved in HOL. Its complete article package is
+assembled; positive end-to-end Python verification remains unverified.
 
-## Author proof export (in progress)
+## Author proof export
 
 The author uses a separate tracing-kernel checkout at the tested HOL revision:
 

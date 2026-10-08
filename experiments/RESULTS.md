@@ -1305,3 +1305,20 @@ allocation and native RISC-V compilation. The process exited successfully after
 native result is therefore now supported by independent compiler-chain replay.
 This still does not prove acceptance of the complete Certificate package; the
 installation dependency export and final Python verifier run remain required.
+
+
+### Complete package assembled; full verifier run pending
+
+All 81 dependency articles and the literal-binding article are exported. The
+standard packaging tool assembled 82 articles into a 1,255,970,139-byte
+`certificate.art`, alongside the 950,336-byte ROM and `{"K":"infinity"}` claim.
+Each dependency article hash and the binding ROM/article hashes were checked
+during assembly. The ROM SHA-256 remains
+`ea0df268b27634b513e326c04308171ee8062e802e8e09e9260a2d5cca2417f6`.
+
+The actual single Python verifier is running on this complete package with a
+7,200-second timeout and a 96 GiB memory limit. It has frozen the submission,
+created the operator-owned literals, and started replay. No positive
+full-Certificate acceptance is claimed until that process succeeds. The latest
+prepared heap passed the real CLI regression: all 904,476 native bytes were
+frozen and an unrelated proof was rejected at the exact conclusion check.

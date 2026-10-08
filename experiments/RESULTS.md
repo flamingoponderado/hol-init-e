@@ -1289,3 +1289,19 @@ full Certificate acceptance remain unverified.
 The ordinary bootstrap suffix export is complete at 158,386,675 bytes. Both
 bootstrap suffix articles and the final challenge Certificate article are now
 available; the installation and memory dependency exports are still in progress.
+
+
+### Independent replay of the selected compiler articles
+
+All nine compiler articles selected by the current package plan now replay in
+one fresh standard-kernel process: 532,903,402 article bytes and 13,399 exported
+theorems. The reader loads only `initProofLibrary` and its fixed ancestors; it
+introduces fresh candidate constants and checks subsequent requests from the
+preceding proof data. No built baseline compiler theories are imported.
+
+This includes the newer 421,769,322-byte simplification article, full checked
+allocation and native RISC-V compilation. The process exited successfully after
+679.5 seconds, with peak RSS 55,264,192 KiB (52.7 GiB). The earlier focused
+native result is therefore now supported by independent compiler-chain replay.
+This still does not prove acceptance of the complete Certificate package; the
+installation dependency export and final Python verifier run remain required.

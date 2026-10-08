@@ -76,10 +76,12 @@ article proving an unrelated statement, including a full 904,476-byte literal
 ROM. `test_replay.py` checks that this reaches the exact-conclusion rejection
 rather than failing during literal loading. An isolated author tracing build now
 exports CV computation requests and their proved equations; the unmodified
-standard verifier kernel recomputes those requests. The first five guest compiler-pass articles have independently replayed
-10,717 theorems in one fresh standard-kernel process, using only the fixed
-library and preceding replayed articles. Full Certificate acceptance is still
-unverified.
+standard verifier kernel recomputes those requests. The exact first nine compiler articles selected for the package independently
+replay 13,399 exported theorems in one fresh standard-kernel process, using only
+the fixed library and preceding proof data. This includes full native bytecode
+compilation. The measured run took 679.5 seconds and peaked at 52.7 GiB RSS,
+so the baseline requires explicit limits above the defaults. Full Certificate
+acceptance is still unverified.
 
 The fixed `initProofLibrary` supplies generic compiler, target, semantics, and
 CV lemmas. Its local source dependencies are pinned in the trusted-file manifest.

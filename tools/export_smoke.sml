@@ -12,6 +12,9 @@ val _ = Logging.set_tyop_name_handler
   (fn {Thy,Tyop} => (["HOL4",Thy],Tyop));
 val _ = Logging.raw_start_logging [] (TextIO.openOut "cv-smoke.art");
 val _ = Logging.export_thm boolTheory.SELECT_AX;
+val dotted = new_definition ("dotted_binding",
+  mk_eq(mk_var("helper.with.dots",``:cv``),``cv$Num 19``));
+val _ = Logging.export_thm dotted;
 val specs = gen_new_specification("smoke_pair",
  CONJ (ASSUME ``leftValue = cv$Num 2``) (ASSUME ``rightValue = cv$Num 5``));
 val _ = Logging.export_thm specs;

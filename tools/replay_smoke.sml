@@ -33,3 +33,9 @@ val eager_expected = ``(p:bool) ==> p``;
 val _ = case List.find (strictReplayLib.same_sequent ([],eager_expected)) (Net.listItems proved) of
   SOME th => ignore (strictReplayLib.checked th)
 | NONE => raise Fail "missing eager subgoal proof";
+
+val dotted_constant = prim_mk_const {Thy="candidateCertificate",Name="helper.with.dots"};
+val dotted_expected = mk_eq(dotted_constant,``cv$Num 19``);
+val _ = case List.find (strictReplayLib.same_sequent ([],dotted_expected)) (Net.listItems proved) of
+  SOME th => ignore (strictReplayLib.checked th)
+| NONE => raise Fail "logical constant name changed during binding sanitization";

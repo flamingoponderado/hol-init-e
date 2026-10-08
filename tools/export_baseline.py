@@ -134,6 +134,29 @@ val _ = print "ALLOCATION_HINT_EXTRACTED\\n";
 
 
 def author_source(source, target, work, hint=None):
+    if target == 'initDecodedConfig':
+        text = source.read_text()
+        # The decoder result supplies data only; the unconditional re-encoding
+        # theorem below is still recorded and independently checked.
+        text = text.replace('val hint_result = cv_eval',
+            'val hint_result = Lib.with_flag (TraceMode.mode,TraceMode.NoTrace) cv_eval')
+        compact = """fun compact_eval tm =
+  Lib.with_flag (TraceMode.mode,TraceMode.NoTrace) EVAL tm;
+fun compact_record_literal tm =
+  if TypeBase.is_record tm andalso not (null (#2 (TypeBase.dest_record tm)))
+     andalso not (TypeBase.is_constructor (fst (strip_comb tm))) then
+    (REWR_CONV (recordLiteralLib.reconstruction (type_of tm)) THENC compact_eval) tm
+  else NO_CONV tm;
+val compact_record_normalize = compact_eval THENC
+  TOP_DEPTH_CONV compact_record_literal THENC compact_eval THENC
+  REWRITE_CONV [cvTheory.b2c_def] THENC compact_eval;
+"""
+        text = text.replace('val candidateConfig_def =', compact + 'val candidateConfig_def =')
+        text = text.replace('cv_trans_deep_embedding recordLiteralLib.normalize',
+                            'cv_trans_deep_embedding compact_record_normalize')
+        result = work/'initDecodedConfigScript.sml'
+        result.write_text(text)
+        return result
     if target == 'initConfigNumbers':
         text = source.read_text().replace('cv_trans_deep_embedding EVAL config_numbers_def',
             'cv_trans_deep_embedding (Lib.with_flag (TraceMode.mode,TraceMode.NoTrace) EVAL) config_numbers_def')

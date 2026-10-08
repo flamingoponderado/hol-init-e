@@ -159,6 +159,13 @@ fun resolve trusted proved (hs,c) =
   end
   handle cv_repLib.NeedsTranslation _ => reject "no checked computation for requested theorem";
 
+(* Logical names may contain punctuation. Only the ML theorem binding needs
+   an identifier; hexadecimal byte encoding is injective and leaves the logical
+   constant name unchanged. *)
+fun definition_binding name = "article_" ^ String.concat
+  (map (fn c => StringCvt.padLeft #"0" 2 (Int.fmt StringCvt.HEX (Char.ord c)))
+       (String.explode name));
+
 (* Candidate definitions may only extend a fresh, operator-created theory.
    Fixed challenge, library, bytecode and score constants cannot be replaced. *)
 fun reader trusted =
@@ -170,7 +177,7 @@ fun reader trusted =
       | tyop_name n = OpenTheoryReader.tyop_name_in_map n;
     fun def_const (c as {Thy,...}) rhs =
       if Thy = namespace andalso not (can prim_mk_const c)
-      then OpenTheoryReader.define_const_in_thy I c rhs
+      then OpenTheoryReader.define_const_in_thy definition_binding c rhs
       else reject "definition outside candidate theory";
     fun def_type (r as {name={Thy,...},rep,abs,...}) =
       if Thy = namespace andalso #Thy rep = namespace andalso #Thy abs = namespace

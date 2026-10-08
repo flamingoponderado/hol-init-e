@@ -1015,3 +1015,24 @@ removed before the clean build.
 Lifting this result to observable semantics and the full Pancake compiler,
 proving the resource bound, assembling `Certificate`, and positive article
 replay remain outstanding.
+
+## Observable semantics and lab compiler refinement
+
+`initChallengeSemanticsTheory` passed a clean build (18 s observed). Its
+`challengeMachineSem` records termination, divergence, and failure using the
+fixed `challengeEvaluate`. For related initial states, a correct encoder,
+`no_install` code, and non-failing lab semantics,
+`challenge_machine_sem_EQ_sem` proves equality with the singleton lab behavior,
+including the complete I/O trace. The divergence proof uses the checked clock
+and prefix-monotonicity results.
+
+`initChallengeLabCompilerTheory` passed a clean build (19 s observed).
+`challenge_semantics_make_init` connects the installed-code initial relation to
+observable semantics. `challenge_semantics_compile` composes that result with
+label compilation, skip filtering, and aligned ordinary/shared memory domains.
+It retains the upstream compiler and installation hypotheses and adds the
+explicit `no_install` input-code requirement. Both exported results are closed
+and tag checked.
+
+The full Pancake composition and concrete resource bound still need checking;
+these results do not yet establish the baseline `Certificate`.

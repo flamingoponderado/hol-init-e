@@ -81,6 +81,24 @@ fun raw_compute facts c =
     val code = collect (find_terms is_const lhs) [] [];
   in cv_computeLib.cv_compute code lhs end;
 
+(* Re-prove large byte-list decoding without an article containing one proof
+   step per byte. A named RHS must resolve to an already checked definition. *)
+fun decode_literal facts c =
+  let
+    val (l,r) = dest_eq c;
+    val (f,value) = dest_comb l;
+    val expected = ``cv_type$to_list (cv_type$to_word : cv -> word8)``;
+    val _ = if aconv f expected then () else reject "not a byte decoding request";
+    val decoded = literalDecodeLib.decode value;
+    fun literal_definition th =
+      null(hyp th) andalso is_eq (concl th) andalso
+      aconv (lhs(concl th)) r andalso aconv (rhs(concl th)) (rhs(concl decoded));
+  in if aconv (rhs(concl decoded)) r then decoded
+     else case List.find literal_definition facts of
+       SOME def => TRANS decoded (SYM (checked def))
+     | NONE => reject "decoded bytes differ from the fixed literal"
+  end;
+
 (* Computation requests are re-proved by the local HOL kernel. An article
    cannot make the result trusted merely by labelling it an axiom. *)
 fun resolve trusted proved (hs,c) =
@@ -92,7 +110,9 @@ fun resolve trusted proved (hs,c) =
       else let
         val th = case instance facts (hs,c) of
           SOME th => th
-        | NONE => raw_compute facts c
+        | NONE => (decode_literal facts c
+                   handle HOL_ERR _ => raw_compute facts c
+                        | Fail _ => raw_compute facts c)
                  handle HOL_ERR _ =>
                    (EQT_ELIM (QCONV (SIMP_CONV bool_ss [boolTheory.FUN_EQ_THM]) c)
                     handle HOL_ERR _ => EQT_ELIM (cv_transLib.cv_eval c))

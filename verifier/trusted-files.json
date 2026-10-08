@@ -72,7 +72,8 @@
   "verifier/articleReaderLib.sml": "6fa0e5c1ef4b7b39be70eb96863046dabaddda55f7b0f8841ee806ad5858059e",
   "verifier/certificateReplayLib.sml": "001c0f838f6a7fe1f4f6d8a61dd67c3630a9908fbae5895a5e8ef91d455dfeb0",
   "verifier/check.sml": "d109bdefcc3f876886351f1b99161eb9a0f939059590c810fca67eceef7a8bc2",
+  "verifier/literalDecodeLib.sml": "1b26f50fd1f680a1bb6d51bf4791e082ca3ea4479e91953aa4bf24c97d23c55e",
   "verifier/prepareHeap.sml": "be8a94b3b335bb0a57ab235b82a93c1ca81d48b460e523a8a4eb76b873e035b1",
-  "verifier/strictReplayLib.sml": "2a94baca396578b36c8412834ea89c10262805cd36ea8bf064f7066d5e3888ba",
+  "verifier/strictReplayLib.sml": "36c7f4b5cbd43de2a6f22d4861b439b095647d0cea6ce6926ddd9c32a57389b7",
   "verifier/verify.py": "43e18a2ad57a91acc8045742c1459c2bb4ae8ae5364ef5169bb899f8d6da70fe"
 }

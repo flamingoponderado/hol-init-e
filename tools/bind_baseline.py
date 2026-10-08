@@ -34,7 +34,7 @@ def main():
     deps += ['initBaselineCertificateTheory', 'cv_transLib']
     script = output/'bind.sml'
     script.write_text(author_setup(build, standard, deps, candidates+['baselineLiteralBinding']) +
-        'val _ = QUse.use '+json.dumps(str(ROOT/'tools/literalDecode.sml'))+';\n'+
+        'val _ = QUse.use '+json.dumps(str(ROOT/'verifier/literalDecodeLib.sml'))+';\n'+
         'val _ = QUse.use '+json.dumps(str(ROOT/'tools/bind_baseline.sml'))+';\n')
     article = output/'binding.art'
     env = dict(os.environ, HOL_INIT_E_ROM=str(output/'rom.bin'),

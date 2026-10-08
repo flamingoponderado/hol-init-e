@@ -34,7 +34,7 @@ def main():
         work = Path(temp)
         exporter = work/'export.sml'
         exporter.write_text('TraceMode.mode := TraceMode.TraceOnly;\nload "cv_transLib";\n' +
-            'QUse.use '+json.dumps(str(ROOT/'tools/literalDecode.sml'))+';\n'+
+            'QUse.use '+json.dumps(str(ROOT/'verifier/literalDecodeLib.sml'))+';\n'+
             'QUse.use '+json.dumps(str(ROOT/'tools/export_smoke.sml'))+';\n')
         run(author, exporter, work, 'EXPORT_SMOKE_OK')
         build = (ROOT/'.build').resolve()
@@ -43,10 +43,10 @@ def main():
             json.dumps(str(ROOT)) + '};\nloadPath := ' + json.dumps([str(build/'.hol/objs'),
             str(build)]) + ' @ !loadPath;\n' +
             (ROOT/'tools/replay_smoke.sml').read_text())
-        run(hol, loader, work, 'LITERAL_DECODE_REPLAY_OK')
+        run(hol, loader, work, 'LITERAL_REQUEST_REPLAY_OK')
         compact(work/'cv-smoke.art', work/'compact.art')
         (work/'compact.art').replace(work/'cv-smoke.art')
-        run(hol, loader, work, 'LITERAL_DECODE_REPLAY_OK')
+        run(hol, loader, work, 'LITERAL_REQUEST_REPLAY_OK')
         print('PASS: independent article replay (fresh definitions and CV computation)')
 
 

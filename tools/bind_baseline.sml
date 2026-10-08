@@ -23,12 +23,16 @@ val _ = new_theory "baselineLiteralBinding";
 val _ = Logging.raw_start_logging [] (TextIO.openOut article_path);
 val rom_raw = cv_transLib.cv_eval_raw ``initBaselineRom$baselineRom``;
 val _ = print "BASELINE_ROM_CV_COMPUTED\n";
-val decoded = literalDecode.decode (rand (rhs (concl rom_raw)));
+val decoded = literalDecodeLib.decode (rand (rhs (concl rom_raw)));
 val _ = print "BASELINE_LITERAL_DECODED\n";
 val rom_result = TRANS rom_raw decoded;
 val _ = if aconv (rhs (concl rom_result)) bytes then ()
         else raise Fail "baseline ROM differs from frozen author bytes";
-val bytes_eq = TRANS rom_result (SYM submittedBytes_def);
+val literal_encoding = TRANS decoded (SYM submittedBytes_def);
+(* The strict reader re-proves this conversion from its own sanitized literal.
+   Export the request instead of nearly a million primitive decoding steps. *)
+val _ = Thm.delete_proof literal_encoding;
+val bytes_eq = TRANS rom_raw literal_encoding;
 val score_eq = SYM submittedScore_def;
 val certificate_const = prim_mk_const {Thy="initChallenge",Name="Certificate"};
 val conclusion_eq = MK_COMB (AP_TERM certificate_const bytes_eq,score_eq);

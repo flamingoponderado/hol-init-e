@@ -1,5 +1,5 @@
 diff --git a/src/opentheory/postbool/Logging.sml b/src/opentheory/postbool/Logging.sml
-index 0bf744b24..e59606a21 100644
+index 0bf744b24..3ea12908f 100644
 --- a/src/opentheory/postbool/Logging.sml
 +++ b/src/opentheory/postbool/Logging.sml
 @@ -57,6 +57,8 @@ val proof_type = let open Thm fun
@@ -9,7 +9,7 @@ index 0bf744b24..e59606a21 100644
 +|f (Mark_prf _) = "mark"
 +|f (Exported_prf _) = "exported"
  in f end
- 
+
  datatype log_state =
 @@ -112,7 +114,9 @@ val (log_term, log_thm, log_clear,
    val (reset_dict,peek_dict,save_dict) = let
@@ -22,7 +22,39 @@ index 0bf744b24..e59606a21 100644
      fun peek x = Map.peek(!dict,x)
      fun save x = case peek x of
        SOME k => k
-@@ -412,6 +416,8 @@ val (log_term, log_thm, log_clear,
+@@ -209,9 +213,21 @@ val (log_term, log_thm, log_clear,
+     in () end
+   end
+
++  (* Literal spines may contain hundreds of thousands of equal prefixes.
++     Ordering every suffix in the structural dictionary is quadratic. Emit
++     spine applications directly; their small heads still share dictionary
++     entries. This changes only serialization, never inference. *)
++  fun literal_spine tm =
++    let val head = Term.rator (Term.rator tm)
++        val {Thy,Name,...} = Term.dest_thy_const head
++    in (Thy="cv" andalso Name="Pair") orelse
++       (Thy="list" andalso Name="CONS") end
++    handle Feedback.HOL_ERR _ => false;
++
+   fun log_term tm = let
+     val ob = OTerm tm
+-  in if saved ob then () else let
++    val spine = literal_spine tm
++  in if not spine andalso saved ob then () else let
+     open Term Feedback
+     val _ = let
+       val {Thy,Name,Ty} = dest_thy_const tm
+@@ -238,7 +254,7 @@ val (log_term, log_thm, log_clear,
+       val _ = log_var tm
+       val _ = log_command "varTerm"
+     in () end
+-    val _ = save_dict ob
++    val _ = if spine then () else ignore (save_dict ob)
+     in () end
+   end
+
+@@ -412,6 +428,8 @@ val (log_term, log_thm, log_clear,
        val _ = log_command "axiom"
        in () end
      | save_dep_prf th => log_thm th
@@ -31,7 +63,7 @@ index 0bf744b24..e59606a21 100644
      | ASSUME_prf tm => let
        val _ = log_term tm
        val _ = log_command "assume"
-@@ -696,7 +702,19 @@ val (log_term, log_thm, log_clear,
+@@ -696,7 +714,19 @@ val (log_term, log_thm, log_clear,
                                    [alpha|->rty,beta|->aty]) Def_tyop_pth
        val _       = log_thm (proveHyp ra (proveHyp ar pth))
        in () end
@@ -52,19 +84,19 @@ index 0bf744b24..e59606a21 100644
      val _ = if !verbosity >= 4 then HOL_MESG("Finish proof for "^(Susp.force ths)) else ()
      (*
      val _ = log_comment(pt^")")
-@@ -714,9 +732,10 @@ in (log_term, log_thm, reset_dict,
+@@ -714,9 +744,10 @@ in (log_term, log_thm, reset_dict,
  end
- 
+
  val definitions = ref []
 +val export_count = ref 0
- 
+
  fun log_definitions () =
 -  (List.app log_thm (List.rev (!definitions));
 +  (List.app (fn th => (log_thm th; log_command "pop")) (List.rev (!definitions));
     definitions := [])
- 
+
  fun export_thm th = let
-@@ -732,6 +751,11 @@ fun export_thm th = let
+@@ -732,6 +763,11 @@ fun export_thm th = let
        val _ = log_list log_term (hyp th)
        val _ = log_term (concl th)
        val _ = log_command "thm"

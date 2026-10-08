@@ -149,10 +149,15 @@ the dependency order. The author patch records proofs, supports CV computation
 requests, and emits dictionary cleanup. Exported baseline constants are renamed
 into the fresh candidate namespace. Article compaction preserves inference
 commands while releasing dictionary objects at their last use. Neither the
-patch nor author caches are used to accept a submission.
+patch nor author caches are used to accept a submission. Large CV and byte-list
+spines are serialized without ordering every suffix in the writer dictionary.
+The exporter reuses the allocation hint from the prior build as data; its full
+compiler evaluation still checks the hint before returning bytes.
 
 The smoke regression independently replays fresh definitions, ordinary proof
-commands, CV evaluation, shared literal-byte decoding, and compacted articles. HOL regression checks reject
-false results, missing or forged equations, unrelated conclusions, and attempts
+commands, CV evaluation, and compacted articles. A literal-decoding request is
+re-proved with kernel inference rules and matched against the verifier's own
+sanitized byte constant. Regression checks reject changed bytes, forged literal
+definitions, false results, missing or forged equations, unrelated conclusions, and attempts
 to replace fixed constants. Full baseline package assembly, size limits, and
 end-to-end performance still need validation before a release.

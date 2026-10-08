@@ -22,3 +22,9 @@ val decoded_expected = ``cv_type$to_list (cv_type$to_word : cv -> word8)
 val _ = case List.find (strictReplayLib.same_sequent ([],decoded_expected)) (Net.listItems proved) of
   SOME th => (strictReplayLib.checked th; print "LITERAL_DECODE_REPLAY_OK\n")
 | NONE => raise Fail "missing literal decoding proof";
+
+val named_literal = prim_mk_const {Thy="candidateCertificate",Name="smokeBytes"};
+val named_expected = mk_eq (lhs decoded_expected,named_literal);
+val _ = case List.find (strictReplayLib.same_sequent ([],named_expected)) (Net.listItems proved) of
+  SOME th => (strictReplayLib.checked th; print "LITERAL_REQUEST_REPLAY_OK\n")
+| NONE => raise Fail "missing recomputed literal binding";

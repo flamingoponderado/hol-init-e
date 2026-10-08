@@ -72,6 +72,21 @@ val _ = must_reject "forged CV equation"
     [mk_thm([],``candidateCvOuter x = cv$Num 18``)] empty
     ([],``candidateCvOuter (cv$Num 3) = cv$Num 18``); ()));
 
+Definition sanitizedTestBytes_def:
+  sanitizedTestBytes = [0w;255w;17w] : word8 list
+End
+val byte_request = ``cv_type$to_list (cv_type$to_word : cv -> word8)
+  (cv$Pair (cv$Num 0) (cv$Pair (cv$Num 255) (cv$Pair (cv$Num 17) (cv$Num 0)))) =
+  sanitizedTestBytes``;
+val _ = strictReplayLib.resolve [sanitizedTestBytes_def] empty ([],byte_request);
+val _ = must_reject "changed byte literal"
+  (fn () => (strictReplayLib.resolve [sanitizedTestBytes_def] empty
+    ([],``cv_type$to_list (cv_type$to_word : cv -> word8)
+      (cv$Pair (cv$Num 1) (cv$Num 0)) = sanitizedTestBytes``); ()));
+val _ = must_reject "forged byte literal definition"
+  (fn () => (strictReplayLib.resolve
+    [mk_thm([],``sanitizedTestBytes = [0w;255w;17w]``)] empty ([],byte_request); ()));
+
 Theorem replay_component_checked:
   T
 Proof

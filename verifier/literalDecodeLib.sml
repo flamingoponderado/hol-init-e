@@ -1,6 +1,6 @@
-(* Author helper: decode CV byte lists with shared proofs for the 256 bytes.
+(* Kernel-checked literal helper: decode CV byte lists with shared proofs for the 256 bytes.
    Every output equality is built with kernel inference rules. *)
-structure literalDecode =
+structure literalDecodeLib =
 struct
 open HolKernel boolLib bossLib;
 fun decode value =

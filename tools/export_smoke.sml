@@ -18,10 +18,16 @@ val code = new_definition("smoke_def",``smoke x = cv$cv_add x (cv$Num 7)``);
 val result = cv_computeLib.cv_compute [code] ``smoke (cv$Num 10)``;
 val _ = Logging.export_thm result;
 val _ = List.app (fn _ => ignore (Logging.export_thm result)) (List.tabulate (33,I));
-val decoded = literalDecode.decode
+val decoded = literalDecodeLib.decode
   ``cv$Pair (cv$Num 0) (cv$Pair (cv$Num 255) (cv$Pair (cv$Num 17) (cv$Num 0)))``;
 val _ = if aconv (rhs (concl decoded)) ``[0w;255w;17w] : word8 list`` then ()
         else raise Fail "literal decoder mismatch";
 val _ = Logging.export_thm decoded;
+val byte_literal = new_definition ("smokeBytes_def",
+  mk_eq (mk_var ("smokeBytes",``:word8 list``),rhs(concl decoded)));
+val _ = Logging.export_thm byte_literal;
+val request = TRANS decoded (SYM byte_literal);
+val _ = Thm.delete_proof request;
+val _ = Logging.export_thm request;
 val _ = Logging.stop_logging ();
 val _ = print "EXPORT_SMOKE_OK\n";

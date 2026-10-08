@@ -105,6 +105,56 @@ val _ = print "BASELINE_MODULE_EXPORT_OK\\n";
 '''
 
 
+def allocation_hint(build, standard, work):
+    """Reuse data from the prior build; the recorded compiler checks this hint."""
+    q = json.dumps
+    output = work/'allocation.term'
+    script = work/'extract_hint.sml'
+    script.write_text(f'''val _ = PolyML.print_depth 0;
+val _ = holpathdb.extend_db {{vname="init-e-hol4",path={q(str(ROOT))}}};
+val _ = loadPath := {q([str(build),str(build/'.hol/objs')])} @ !loadPath;
+load "initBytecodeTheory";
+open HolKernel;
+val _ = Globals.max_print_depth := 100000000;
+val _ = Globals.show_types := true;
+val hint = boolSyntax.rhs (concl initBytecodeTheory.allocation_def);
+val text = Parse.term_to_string hint;
+val _ = if aconv (Parse.Term [QUOTE text]) hint then ()
+        else raise Fail "allocation hint round trip failed";
+val stream = TextIO.openOut {q(str(output))};
+val _ = TextIO.output(stream,text);
+val _ = TextIO.closeOut stream;
+val _ = print "ALLOCATION_HINT_EXTRACTED\\n";
+''')
+    with (work/'hint.log').open('w') as log:
+        result = subprocess.run([str(standard/'bin/hol'), 'run',
+            str(standard/'sigobj/holmake_not_interactive.uo'), str(script)],
+            cwd=work, stdout=log, stderr=subprocess.STDOUT)
+    if result.returncode or 'ALLOCATION_HINT_EXTRACTED' not in (work/'hint.log').read_text():
+        raise RuntimeError(f'Hint extraction failed (exit {result.returncode}): {work/"hint.log"}')
+    return output
+
+
+def author_source(source, target, work, hint=None):
+    if target != 'initBytecode':
+        return source
+    text = source.read_text()
+    first = text.index('val _ = report "computing register-allocation graphs";')
+    last = text.index('val allocation_def =', first)
+    # No theorem is imported here. The from_word_0_riscv computation below
+    # checks the whole hint and is recorded for independent replay.
+    replacement = f'''val _ = report "reading untrusted allocation hint";
+val colours = let
+  val stream = TextIO.openIn {json.dumps(str(hint))};
+  val text = TextIO.inputAll stream;
+  val _ = TextIO.closeIn stream;
+  in Parse.Term [QUOTE text] end;
+'''
+    result = work/'initBytecodeScript.sml'
+    result.write_text(text[:first]+replacement+text[last:])
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--hol', type=Path, required=True)
@@ -137,9 +187,14 @@ def main():
         work.mkdir(exist_ok=True)
         article = work/'proof.art'
         script = work/'export.sml'
-        contents = driver(build, standard, sources[target], target, candidates, article)
+        hint = allocation_hint(build, standard, work) if target == "initBytecode" else None
+        recorded_source = author_source(sources[target], target, work, hint)
+        contents = driver(build, standard, recorded_source, target, candidates, article)
         stamp = work/'complete.json'
-        key = hashlib.sha256((contents + sources[target].read_text()).encode()).hexdigest()
+        key_material = contents + recorded_source.read_text()
+        if hint is not None:
+            key_material += hint.read_text()
+        key = hashlib.sha256(key_material.encode()).hexdigest()
         if args.resume and stamp.is_file() and article.is_file():
             info = json.loads(stamp.read_text())
             with article.open('rb') as stream:
@@ -154,7 +209,7 @@ def main():
                 str(author/'sigobj/holmake_not_interactive.uo'), str(script)],
                 cwd=work, stdout=log, stderr=subprocess.STDOUT)
         if result.returncode or 'BASELINE_MODULE_EXPORT_OK' not in (work/'export.log').read_text():
-            raise RuntimeError(f'Export failed: {work/"export.log"}')
+            raise RuntimeError(f'Export failed (exit {result.returncode}): {work/"export.log"}')
         compacted = work/'proof.compact.art'
         compact(article, compacted)
         compacted.replace(article)

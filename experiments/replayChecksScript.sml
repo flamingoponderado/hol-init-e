@@ -44,6 +44,12 @@ val _ = must_reject "candidate constant redefinition"
   (fn () => (#define_const (strictReplayLib.reader [])
     {Thy=current_theory (),Name="candidateLiteral"} ``18n``; ()));
 
+val _ = strictReplayLib.resolve [] empty
+  ([],``cv$cv_add (cv$Num 19) (cv$Num 23) = cv$Num 42``);
+val _ = must_reject "wrong primitive CV result"
+  (fn () => (strictReplayLib.resolve [] empty
+    ([],``cv$cv_add (cv$Num 19) (cv$Num 23) = cv$Num 43``); ()));
+
 (* Replay CV equations for fresh functions, without cv_trans registrations. *)
 Definition candidateCv_def:
   candidateCv x = cv$cv_add x (cv$Num 7)
@@ -106,6 +112,9 @@ val _ = strictReplayLib.bool_taut
   ``(a <=> b) ==> (b ==> (c <=> d)) ==> ((a ==> c) <=> (b ==> d))``;
 val _ = must_reject "false propositional request"
   (fn () => (strictReplayLib.bool_taut ``a /\ ~a``; ()));
+val _ = strictReplayLib.resolve [] empty ([],``(m:num) < n <=> 1 + m <= n``);
+val _ = must_reject "false symbolic arithmetic equivalence"
+  (fn () => (strictReplayLib.resolve [] empty ([],``(m:num) < n <=> m <= n``); ()));
 val _ = strictReplayLib.logical_compute ``!x:'a # 'b. x = (FST x,SND x)``;
 val _ = strictReplayLib.fixed_eval ``LENGTH [T;F;T] = 3``;
 val _ = must_reject "symbolic recursive evaluation request"

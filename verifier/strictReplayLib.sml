@@ -81,17 +81,22 @@ fun raw_compute facts c =
                 then () else raise Fail "not a code equation";
       in SOME (f,(th,r)) end
       handle HOL_ERR _ => NONE | Fail _ => NONE;
-    val equations = List.mapPartial equation
-      (List.concat (map (CONJUNCTS o SPEC_ALL o checked) facts));
-    fun collect [] seen result = result
-      | collect (f::todo) seen result =
-          if List.exists (aconv f) seen then collect todo seen result
-          else case List.find (fn (g,_) => aconv f g) equations of
-            NONE => collect todo (f::seen) result
-          | SOME (_,(th,r)) => collect (find_terms is_const r @ todo)
-                                      (f::seen) (th::result);
-    val code = collect (find_terms is_const lhs) [] [];
-  in cv_computeLib.cv_compute code lhs end;
+    (* Primitive-only arithmetic needs no scan of the accumulated code facts. *)
+    fun from_equations () =
+      let
+        val equations = List.mapPartial equation
+          (List.concat (map (CONJUNCTS o SPEC_ALL o checked) facts));
+        fun collect [] seen result = result
+          | collect (f::todo) seen result =
+              if List.exists (aconv f) seen then collect todo seen result
+              else case List.find (fn (g,_) => aconv f g) equations of
+                NONE => collect todo (f::seen) result
+              | SOME (_,(th,r)) => collect (find_terms is_const r @ todo)
+                                          (f::seen) (th::result);
+        val code = collect (find_terms is_const lhs) [] [];
+      in cv_computeLib.cv_compute code lhs end;
+  in cv_computeLib.cv_compute [] lhs
+     handle HOL_ERR _ => from_equations () end;
 
 (* Re-prove large byte-list decoding without an article containing one proof
    step per byte. A named RHS must resolve to an already checked definition. *)
@@ -139,9 +144,6 @@ fun bool_taut c =
     val _ = if propositional body then () else reject "not a propositional request";
   in GENL variables (tautLib.TAUT_PROVE body) end;
 
-fun logical_simp c =
-  EQT_ELIM (QCONV (SIMP_CONV bool_ss [boolTheory.FUN_EQ_THM, pairTheory.PAIR, combinTheory.I_THM]) c);
-
 (* Keep this early simplifier away from large computation literals. *)
 fun small_logical tm =
   let
@@ -154,6 +156,14 @@ fun small_logical tm =
           else n-1;
   in (ignore(visit 256 tm); true) handle TooLarge => false end;
 
+fun logical_simp c =
+  EQT_ELIM (QCONV (SIMP_CONV bool_ss
+    [boolTheory.FUN_EQ_THM, pairTheory.PAIR, combinTheory.I_THM]) c)
+  handle original as HOL_ERR _ =>
+    if small_logical c then
+      (numLib.ARITH_PROVE c handle HOL_ERR _ => raise original)
+    else raise original;
+
 fun logical_compute c =
   logical_simp c
   handle HOL_ERR _ =>
@@ -164,8 +174,16 @@ fun logical_compute c =
 (* Computation requests are re-proved by the local HOL kernel. An article
    cannot make the result trusted merely by labelling it an axiom. *)
 fun resolve_fallback trusted proved (hs,c) =
-  let val facts = trusted @ Net.listItems proved
-  in case List.find (same_sequent (hs,c)) facts of
+  let
+    val facts = trusted @ Net.listItems proved;
+    val primitive = if null hs then
+      let val th = raw_compute [] c
+      in if same_sequent (hs,c) th then SOME (checked th) else NONE end
+      handle HOL_ERR _ => NONE | Fail _ => NONE
+      else NONE;
+  in case primitive of
+    SOME th => th
+  | NONE => case List.find (same_sequent (hs,c)) facts of
     SOME th => checked th
   | NONE =>
       if not (null hs) then reject "unresolved assumption"

@@ -1116,3 +1116,14 @@ python3 tools/build.py --hol ../HOL-init-e initStackEdgesTheory
 python3 tools/build_stack_ranks.py .build/stack-edges.txt experiments/initStackRanksDataScript.sml
 python3 tools/build.py --hol ../HOL-init-e initStackCertificateTheory initStackFrameProofTheory
 ```
+
+## Stack bound connected to full compilation
+
+`initStackLimitTheory` passed a clean build (100 s observed).
+`guest_bounded_compilation` strengthens the exact full Pancake compilation
+result with `stack_max = SOME depth` and `depth <= 7480`, retaining the exact
+compiled bytecode, bitmaps, and lab configuration. The connection unfolds the
+ordinary compiler, uses the checked optimized word program, and applies the
+proved frame-map correspondence. All exported theorems are closed and tag
+checked. The baseline resource-limit and source/machine-state instantiation,
+full challenge Certificate, and positive verifier replay remain.

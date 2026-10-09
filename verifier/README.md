@@ -72,19 +72,19 @@ separate successful envelope check and never returns `verified`.
 The complete baseline article package passes the production Python verifier
 with the exact fixed Certificate conclusion and frozen ROM/score literals.
 The [verification record](../artifacts/baseline/verification.json) records exit 0,
-`status: verified`, the 950,336-byte ROM, Infinity score, and artifact hashes.
+`status: verified`, the 950,344-byte ROM, Infinity score, and artifact hashes.
 Tests include
 strict-reader positive examples and a real-process negative test using a valid
-article proving an unrelated statement, including a full 904,476-byte literal
+article proving an unrelated statement, including a full 904,616-byte literal
 ROM. `test_replay.py` checks that this reaches the exact-conclusion rejection
 rather than failing during literal loading. An isolated author tracing build now
 exports CV computation requests and their proved equations; the unmodified
-standard verifier kernel recomputes those requests. The exact first nine compiler articles selected for the package independently
+standard verifier kernel recomputes those requests. For the prior guest, the exact first nine compiler articles selected for its package independently
 replay 13,399 exported theorems in one fresh standard-kernel process, using only
 the fixed library and preceding proof data. This includes full native bytecode
 compilation. The measured run took 679.5 seconds and peaked at 52.7 GiB RSS,
 so the baseline requires explicit limits above the defaults. The successful
-full-package run (v6) took 8,701 seconds and peaked at 90.53 GiB child RSS,
+full-package run (PR25 v4) took 8,727 seconds and peaked at 90.54 GiB child RSS,
 using `--timeout 10800 --memory-gib 112`. Reduced Lean decoder/step agreement
 remains an independent, unproved semantic obligation.
 

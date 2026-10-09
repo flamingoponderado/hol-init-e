@@ -150,7 +150,7 @@ End
 
 Definition guestFn_input_blob_def:
   guestFn_input_blob : 64 panLang$decl =
-  Function <| name := «input_blob» ; inline := F ; export := F ; params := [ ] ; body := ( Dec «len» One ( Const 0w ) ( Seq ( ShMemLoad OpW Local «len» ( Const 1073741832w ) ) ( DecCall «p» One «alloc» [ ( Op Add [ ( Var Local «len» ) ; ( Const 8w ) ] ) ] ( Dec «i» One ( Const 0w ) ( Dec «w» One ( Const 0w ) ( Seq ( While ( Cmp Lower ( Var Local «i» ) ( Var Local «len» ) ) ( Seq ( ShMemLoad OpW Local «w» ( Op Add [ ( Const 1073741840w ) ; ( Var Local «i» ) ] ) ) ( Seq ( Store ( Op Add [ ( Var Local «p» ) ; ( Var Local «i» ) ] ) ( Var Local «w» ) ) ( Assign Local «i» ( Op Add [ ( Var Local «i» ) ; ( Const 8w ) ] ) ) ) ) ) ( Return ( RStruct [ ( Var Local «p» ) ; ( Var Local «len» ) ] ) ) ) ) ) ) ) ) ; return := ( Comb [ One ; One ] ) |>
+  Function <| name := «input_blob» ; inline := F ; export := F ; params := [ ] ; body := ( Dec «len» One ( Const 0w ) ( Seq ( ShMemLoad OpW Local «len» ( Const 1073741832w ) ) ( Seq ( If ( Cmp Lower ( Const 134217712w ) ( Var Local «len» ) ) ( Call ( SOME ( NONE , NONE ) ) «trap_with» [ ( Const 8w ) ] ) Skip ) ( DecCall «p» One «alloc» [ ( Op Add [ ( Var Local «len» ) ; ( Const 8w ) ] ) ] ( Dec «i» One ( Const 0w ) ( Dec «w» One ( Const 0w ) ( Seq ( While ( Cmp Lower ( Var Local «i» ) ( Var Local «len» ) ) ( Seq ( ShMemLoad OpW Local «w» ( Op Add [ ( Const 1073741840w ) ; ( Var Local «i» ) ] ) ) ( Seq ( Store ( Op Add [ ( Var Local «p» ) ; ( Var Local «i» ) ] ) ( Var Local «w» ) ) ( Assign Local «i» ( Op Add [ ( Var Local «i» ) ; ( Const 8w ) ] ) ) ) ) ) ( Return ( RStruct [ ( Var Local «p» ) ; ( Var Local «len» ) ] ) ) ) ) ) ) ) ) ) ; return := ( Comb [ One ; One ] ) |>
 End
 
 Definition guestFn_output_write_def:

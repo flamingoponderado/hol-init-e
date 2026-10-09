@@ -1,5 +1,17 @@
 # hol-init-e
 
+## Verified guest input-bound update
+
+The guest guard from init-e PR #25 (commit `afa0071e8`) is imported.
+Native code has been rebuilt (904,616 bytes, 4,614 bitmap words); HOL boundary
+regressions pass. The full HOL Certificate and fresh submission passed independent
+article replay on 2026-10-09. The verification record below describes this guest;
+tag `r20261008-v` retains the prior guest and its historical evidence.
+The new compilation requires the two bitmap-end startup header words to advance
+from `0xa0029040` to `0xa0029048`; this layout adjustment is recorded in
+`provenance.json`. The Certificate has no added input-length premise.
+
+
 An experimental port of the [init-e challenge](https://github.com/flamingoponderado/init-e).
 Participants submit arbitrary RISC-V bytes; the fixed guest, supported target
 instructions, observations, and execution budget define the challenge.
@@ -8,10 +20,10 @@ CakeML's Pancake compiler supplies one route to a baseline submission.
 The experiment replaces generated Lean computation certificates with HOL4
 `cv_compute` evaluations. The generated Lean proof tree is not imported.
 HOL has proved that the full top-level Pancake compilation returns the
-904,476-byte native RISC-V artifact. The fixed challenge evaluator also has a
+904,616-byte native RISC-V artifact. The fixed challenge evaluator also has a
 checked finite bootstrap execution to native entry, and the resulting ordinary
 memory agrees with the fixed source state.
-HOL now proves the full fixed challenge Certificate for the 950,336-byte
+HOL now proves the full fixed challenge Certificate for the 950,344-byte
 bootstrapped baseline ROM with score Infinity. The complete article package is
 assembled and **accepted by the full Python verifier**, binding the proof to
 the frozen ROM and Infinity score. The [verification record](artifacts/baseline/verification.json)
@@ -130,9 +142,9 @@ python3 verifier/verify.py --local /path/to/submission --hol /path/to/HOL \
   --timeout 10800 --memory-gib 112 --progress
 ```
 
-The successful full-baseline verification run (v6) used the 10,800-second
-and 112 GiB limits above. It took 8,701 seconds (about 2 hours 25 minutes)
-and peaked at 90.53 GiB child RSS. The 600-second/32 GiB defaults are below
+The successful full-baseline verification run (PR25 v4) used the 10,800-second
+and 112 GiB limits above. It took 8,727 seconds (about 2 hours 25 minutes)
+and peaked at 90.54 GiB child RSS. The 600-second/32 GiB defaults are below
 the measured requirements of this baseline proof.
 
 [Checked native artifacts](artifacts/README.md) are included in `artifacts/`.

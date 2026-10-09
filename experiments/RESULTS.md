@@ -1588,3 +1588,28 @@ The proof SHA-256 is
 `aad8e2e6ec4b59cf36e922c8fdcbaaa0bf89c4c3eff91bc97aef5b3f6e0cd98b`.
 This closes full certificate replay, not the separate reduced Lean decoder/step
 agreement obligation, which remains explicitly outstanding.
+
+
+### PR25 guest input bound: fresh full verifier passed (2026-10-09)
+
+Imported init-e PR25 at `afa0071e8611d5b1b18d4033cc350e5072d4a0dd`. The guest
+rejects unsigned input lengths above 134,217,712 bytes with trap 8 before
+allocation or payload access. Kernel regression checks execute the actual imported
+guest on synthetic oversized headers and valid boundary lengths. No input-length
+premise was added to Certificate.
+
+Fresh native compilation is 904,616 bytes with 4,614 bitmap words. Native entry
+is `0x80000f60`, preserving the fixed code-buffer end `0x800ddd08`; two bitmap-end
+startup headers advance to `0xa0029048`. This difference from the pinned upstream
+startup headers is documented in `provenance.json`. Stack ranks remain unchanged.
+
+The normal HOL build passed, including `baseline_certificate`. All 81 fresh
+author exports passed; three tracing exports required sequential 24 GiB retries.
+The fresh literal binding, package, operator heap, 31 boundary tests, and real
+CLI negative test passed. The production full verifier then accepted the new
+950,344-byte ROM with Infinity score: Python and HOL exit 0, no signal or timeout,
+and the exact `VERIFIED\n` marker. Run PR25 v4 took 8,727 seconds and peaked at
+94,934,632 KiB (90.54 GiB) child RSS, with 112 GiB address-space, 84 GiB heap,
+and 10,800-second timeout limits. Artifact and proof hashes are recorded in
+`artifacts/baseline/verification.json`. Earlier entries above describe historical
+artifacts and runs. Reduced Lean decoder/step agreement remains explicitly unproved.

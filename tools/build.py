@@ -9,7 +9,8 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--hol', type=Path, default=Path(os.environ.get('HOLDIR', ROOT.parent/'HOL')))
-p.add_argument('-j', '--jobs', type=int, default=4)
+p.add_argument('-j', '--jobs', type=int, default=3)
+p.add_argument('--maxheap-mib', type=int, default=24576, help='Poly/ML heap limit per HOL worker')
 p.add_argument('--build-dir', type=Path, help='isolated output directory for a different HOL toolchain')
 p.add_argument('targets', nargs='*', default=['initParamsTheory.uo', 'initGuestTheory.uo',
                                          'initSimplifyTheory.uo', 'initTargetTheory.uo',
@@ -19,6 +20,8 @@ p.add_argument('targets', nargs='*', default=['initParamsTheory.uo', 'initGuestT
                                          'initChallengeTheory.uo', 'initAccelChecksTheory.uo',
                                          'replayChecksTheory.uo', 'certificateReplayLib.uo'])
 a = p.parse_args()
+if a.jobs < 1 or a.jobs > 3 or a.maxheap_mib < 1:
+    p.error('use 1 to 3 workers and a positive heap limit')
 hol = a.hol.resolve()
 if not (hol/'bin/Holmake').is_file():
     p.error('build HOL4 first, then set --hol or HOLDIR')
@@ -52,7 +55,7 @@ for directory in directories:
         elif target.exists(): p.error('unexpected file '+str(target))
         else: target.symlink_to(os.path.relpath(source, build))
 cmd = [str(hol/'bin/Holmake'), '--no-project', '--no_hmakefile', '--no_preexecs',
-       '--rebuild_deps', '--keep-going', '-j', str(a.jobs)]
+       '--rebuild_deps', '--keep-going', '--heap-size', str(a.maxheap_mib), '-j', str(a.jobs)]
 for directory in ['examples/pl-semantics/lprefix_lub',
     'examples/machine-code/hoare-triple', 'examples/l3-machine-code/riscv/model',
     'examples/l3-machine-code/riscv/step',

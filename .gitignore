@@ -24,3 +24,5 @@ logs/
 .submission-baseline-*/
 .verify-baseline-*/
 .export-baseline-pr25/
+
+.export-baseline-layout-sync/

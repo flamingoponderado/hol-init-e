@@ -26,3 +26,5 @@ logs/
 .export-baseline-pr25/
 
 .export-baseline-layout-sync/
+
+.export-baseline-rom-match/

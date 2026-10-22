@@ -339,4 +339,9 @@ def main(argv=None):
         'reason':'Preflight only: use --replay with an operator-built verifier heap to check the fixed Certificate.'}))
     return 2
 
-if __name__ == '__main__': raise SystemExit(main())
+if __name__ == '__main__':
+    # Participant-facing verifier: source is the only accepted submission
+    # envelope. The generated article checker is called as a library function
+    # from the source pipeline, never as a second participant-facing CLI.
+    from verify_source import main as source_main
+    raise SystemExit(source_main())

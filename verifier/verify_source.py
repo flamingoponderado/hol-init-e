@@ -73,10 +73,14 @@ def frozen_source_submission(candidate: Path, destination: Path):
                 raise ValueError('too many proof source files')
             for entry in source_entries:
                 name = entry.name
-                suffix = next((s for s in ('Script.sml', 'Lib.sml', 'Lib.sig')
-                               if name.endswith(s)), None)
-                if (not name.isascii() or suffix is None or
-                        not name[:-len(suffix)].isidentifier()):
+                if name == 'original-allocation.term':
+                    valid_name = True
+                else:
+                    suffix = next((s for s in ('Script.sml', 'Lib.sml', 'Lib.sig')
+                                   if name.endswith(s)), None)
+                    valid_name = (name.isascii() and suffix is not None and
+                                  name[:-len(suffix)].isidentifier())
+                if not valid_name:
                     raise ValueError('unsupported proof source name: '+name)
                 if not entry.is_file(follow_symlinks=False):
                     raise ValueError('proof sources must be regular files: '+name)
@@ -87,6 +91,8 @@ def frozen_source_submission(candidate: Path, destination: Path):
                 (destination/'experiments'/name).write_bytes(contents)
             if not any((destination/'experiments').iterdir()):
                 raise ValueError('experiments/ must contain proof sources')
+            if not (destination/'experiments'/'original-allocation.term').is_file():
+                raise ValueError('experiments/original-allocation.term is required')
         finally:
             os.close(exp_fd)
     finally:
@@ -94,8 +100,38 @@ def frozen_source_submission(candidate: Path, destination: Path):
     return score
 
 
-def author_sandbox(work: Path, command, *, timeout: int, memory_gib: int,
-                   stdout=None):
+def author_sandbox_command(bwrap: str, work: Path, standard: Path, author: Path,
+                           command):
+    """Expose only the toolchain and the job workspace to submitted ML."""
+    isolated = [bwrap, '--die-with-parent', '--new-session', '--unshare-net',
+                '--unshare-pid', '--ro-bind', '/', '/',
+                '--tmpfs', '/home', '--dir', '/home/zksecurity',
+                '--dir', '/home/zksecurity/cv_compute',
+                '--dir', str(standard), '--dir', str(author),
+                '--ro-bind', str(standard), str(standard),
+                '--ro-bind', str(author), str(author),
+                '--tmpfs', '/root', '--tmpfs', '/run', '--tmpfs', '/var',
+                '--dir', '/var/tmp', '--dir', str(ROOT), '--dir', str(work),
+                '--ro-bind', str(ROOT), str(ROOT),
+                '--bind', str(work), str(work),
+                '--ro-bind', str(work/'input'), str(work/'input'),
+                '--ro-bind', str(work/'experiments'), str(work/'experiments'),
+                '--ro-bind', str(work/'tools/allocationHintLib.sml'),
+                str(work/'tools/allocationHintLib.sml'),
+                '--tmpfs', '/mnt', '--tmpfs', '/media', '--tmpfs', '/srv',
+                '--tmpfs', '/opt', '--proc', '/proc', '--dev', '/dev',
+                '--tmpfs', '/tmp', '--clearenv',
+                '--setenv', 'PATH', '/usr/local/bin:/usr/bin:/bin',
+                '--setenv', 'HOME', str(work/'home'),
+                '--setenv', 'TMPDIR', '/tmp',
+                '--setenv', 'PYTHONDONTWRITEBYTECODE', '1',
+                '--setenv', 'PYTHONNOUSERSITE', '1',
+                '--chdir', str(work), '--', *map(str, command)]
+    return isolated
+
+
+def author_sandbox(work: Path, standard: Path, author: Path, command, *,
+                   timeout: int, memory_gib: int, stdout=None):
     bwrap = shutil.which('bwrap')
     if bwrap is None:
         raise RuntimeError('source verification requires bubblewrap (bwrap)')
@@ -106,15 +142,31 @@ def author_sandbox(work: Path, command, *, timeout: int, memory_gib: int,
         resource.setrlimit(resource.RLIMIT_FSIZE, (8 * 1024**3, 8 * 1024**3))
         resource.setrlimit(resource.RLIMIT_NOFILE, (256, 256))
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    isolated = [bwrap, '--die-with-parent', '--new-session', '--unshare-net',
-                '--unshare-pid', '--ro-bind', '/', '/', '--proc', '/proc',
-                '--dev', '/dev', '--tmpfs', '/tmp', '--bind', str(work), str(work),
-                '--setenv', 'HOME', str(work/'home'), '--setenv', 'TMPDIR', '/tmp',
-                '--setenv', 'PYTHONDONTWRITEBYTECODE', '1', '--chdir', str(work),
-                '--', *map(str, command)]
+    isolated = author_sandbox_command(bwrap, work, standard, author, command)
     return subprocess.run(isolated, cwd=work, stdin=subprocess.DEVNULL,
                           stdout=stdout, stderr=subprocess.STDOUT,
                           preexec_fn=limits, timeout=timeout, check=False)
+
+
+def install_author_helpers(work: Path):
+    """Install fixed, verifier-owned SML helpers beside the isolated build."""
+    helper_dir = work/'tools'
+    helper_dir.mkdir(mode=0o700)
+    helper = helper_dir/'allocationHintLib.sml'
+    shutil.copyfile(ROOT/'tools/allocationHintLib.sml', helper)
+    helper.chmod(0o444)
+    return helper
+
+
+def install_author_data(work: Path):
+    """Expose the participant's allocation hints at the source's QUse path."""
+    data_dir = work/'experiments'
+    data_dir.mkdir(mode=0o700)
+    source = work/'input/experiments/original-allocation.term'
+    data = data_dir/'original-allocation.term'
+    shutil.copyfile(source, data)
+    data.chmod(0o444)
+    return data
 
 
 def main():
@@ -152,12 +204,19 @@ def main():
         source = work/'input'
         source.mkdir()
         score = frozen_source_submission(args.candidate.absolute(), source)
+        # The baseline's allocation source uses a relative QUse path from the
+        # isolated build directory. Supply this fixed helper beside that build;
+        # it is operator-owned and cannot be submitted or replaced by a user.
+        install_author_helpers(work)
+        # QUse resolves this untrusted hint relative to build/, so expose the
+        # frozen candidate data at ../experiments and mount it read-only.
+        install_author_data(work)
         build, exports = work/'build', work/'exports'
         package = work/'generated-package'
         stages = [
             ('build', [sys.executable, ROOT/'tools/build.py', '--hol', standard,
                        '--build-dir', build, '--experiments-dir', source/'experiments',
-                       '--jobs', '1', '--maxheap-mib', '24576',
+                       '--jobs', '2', '--maxheap-mib', '24576',
                        'initBaselineCertificateTheory', 'initProofLibraryTheory']),
             ('export', [sys.executable, ROOT/'tools/export_baseline.py', '--hol', standard,
                         '--author-hol', author, '--build-dir', build,
@@ -174,7 +233,8 @@ def main():
         ]
         for name, command in stages:
             with (work/(name+'.log')).open('wb') as log:
-                result = author_sandbox(work, command, timeout=args.source_timeout,
+                result = author_sandbox(work, standard, author, command,
+                                        timeout=args.source_timeout,
                                         memory_gib=args.source_memory_gib, stdout=log)
                 log.write(f'author stage exit={result.returncode}\n'.encode())
             if result.returncode:

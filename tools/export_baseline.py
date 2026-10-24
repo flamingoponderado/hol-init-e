@@ -88,7 +88,7 @@ val _ = Logging.set_tyop_name_handler
 '''
 
 
-def driver(build, standard, source, target, candidates, article):
+def driver(build, standard, source, target, candidates, article, sources):
     q = json.dumps
     deps = [str(Path(dep).with_suffix('')) for dep in dependencies(build, target, sources)]
     return author_setup(build, standard, deps, candidates) + f'''val _ = Theory.register_hook ("article-export",fn delta => case delta of
@@ -283,7 +283,8 @@ def main():
         script = work/'export.sml'
         hint = allocation_hint(build, standard, work, runtime) if target == "initBytecode" else None
         recorded_source = author_source(sources[target], target, work, hint)
-        contents = driver(build, standard, recorded_source, target, candidates, article)
+        contents = driver(build, standard, recorded_source, target, candidates,
+                          article, sources)
         stamp = work/'complete.json'
         key_material = contents + recorded_source.read_text()
         if hint is not None:

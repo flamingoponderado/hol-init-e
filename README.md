@@ -1,5 +1,17 @@
 # hol-init-e
 
+## Verified source-only submission
+
+The source bundle's generated Certificate passed fresh independent kernel
+replay on 2026-10-25 (Europe/Berlin), with the same original 950,344-byte ROM
+and Infinity score. The participant bundle is 2,832,136 bytes across 146 files,
+or 655,407 bytes when zipped with DEFLATE level 9. The 2.80 GB OpenTheory
+article is generated locally by the operator.
+See the [source verification record](artifacts/baseline/source-submission-verification.json)
+for exact input hashes, limits, and staged build/export continuations. This
+experiment resumed the export and replay stages; it was not an uninterrupted
+public CLI run. Formal reduced Lean decoder/step agreement remains outstanding.
+
 ## Verified original ROM match
 
 The HOL baseline ROM now matches original init-e `b3831bc` and Rocq byte for
@@ -33,7 +45,7 @@ CakeML's Pancake compiler supplies one route to a baseline submission.
 The experiment replaces generated Lean computation certificates with HOL4
 `cv_compute` evaluations. The generated Lean proof tree is not imported.
 HOL has proved that the full top-level Pancake compilation returns the
-904,616-byte native RISC-V artifact. The fixed challenge evaluator also has a
+904,196-byte native RISC-V artifact. The fixed challenge evaluator also has a
 checked finite bootstrap execution to native entry, and the resulting ordinary
 memory agrees with the fixed source state.
 HOL now proves the full fixed challenge Certificate for the 950,344-byte
@@ -56,7 +68,8 @@ in the source envelope.
 
 ```sh
 python3 verifier/verify.py /path/to/source-submission \
-  --hol /path/to/HOL --author-hol /path/to/tracing-HOL
+  --hol /path/to/HOL --author-hol /path/to/tracing-HOL \
+  --source-timeout 28800
 python3 verifier/test_verify.py
 ```
 

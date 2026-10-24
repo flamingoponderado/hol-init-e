@@ -40,3 +40,10 @@ python3 tools/build.py --hol /path/to/tested/HOL initBaselineCertificateTheory
 The construction target is `initBaselineRomTheory`. Exported files are named
 `bootstrap.bin` and `baseline-rom.bin` in the build directory. Integrity hashes
 are in `manifest.json`; these hashes are external checks, not HOL theorems.
+
+The source-only protocol also generated a fresh package whose exact Certificate
+passed full independent replay on 2026-10-25 (Europe/Berlin), in 9,415.6 seconds.
+The [source verification record](source-submission-verification.json) records
+all 146 submitted file hashes and the resumed export/replay stages. The source
+bundle is 2,832,136 bytes, or 655,407 bytes with ZIP DEFLATE level 9. The large
+article is generated internally and is not uploaded by participants.

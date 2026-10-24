@@ -5,13 +5,14 @@ Run from an operator-controlled checkout of the fixed challenge:
 ```sh
 python3 verifier/verify.py /path/to/source-submission \
   --hol /path/to/tested/HOL --author-hol /path/to/tracing/HOL \
-  --work /path/to/new-work-directory
+  --work /path/to/new-work-directory --source-timeout 28800
 python3 verifier/test_verify.py
 python3 verifier/test_replay.py
 ```
 
 This source envelope is the only participant submission format. It contains
-`rom.bin`, `claim.json`, and flat `.sml`/`.sig` files under `experiments/`.
+`rom.bin`, `claim.json`, flat `.sml`/`.sig` proof sources, and the exact data
+file `experiments/original-allocation.term`.
 Participants do not supply an OpenTheory article. The operator pins this
 checkout and dependencies; a trust manifest supplied by a participant does not
 establish trust.
@@ -26,9 +27,10 @@ intermediates, not an alternate submission path.
 ## Frozen literals and the exact statement
 
 The source verifier checks trusted-file hashes and the CakeML pin, exact file
-names, regular files without symlinks, bounded sizes (128 MiB ROM, 64 MiB total
-proof source), and a literal finite/infinite score. It reads each candidate
-file once into an immutable snapshot. Later steps use those frozen bytes.
+names, regular files without symlinks, bounded sizes (128 MiB ROM, 16 MiB per
+source file, 64 MiB total proof inputs), and a literal finite/infinite score.
+It reads each candidate file once into an immutable snapshot. Later steps use
+those frozen bytes.
 
 `claim.json` is exactly `{"K":123}` or `{"K":"infinity"}`. The operator's fixed
 checker constructs HOL word8 literals from the frozen ROM and a natural-number
@@ -63,14 +65,14 @@ or untrusted theorem tags and must have the exact fixed conclusion.
 
 The replay process uses a private working directory, the hash-checked operator
 heap, fixed checker code, time and memory limits, and a completion marker written
-only after the exact theorem check. Defaults are 600 seconds and 32 GiB;
-`--timeout` and `--memory-gib` configure these limits. The operator must use the
-tested HOL revision in `provenance.json`.
+only after the exact theorem check. The participant command defaults to
+10,800 seconds and 112 GiB of address space for strict replay; `--timeout` and
+`--memory-gib` configure these limits. Its Poly/ML heap limit is 84 GiB. The
+operator must use the tested HOL revision in `provenance.json`.
 
-Exit codes: **0** verified; **1** rejected; **2** incomplete/preflight only or
-missing/stale prepared verifier. The positional interface without `--replay` never accepts a proof.
-`--local` selects full replay automatically; explicit `--structural-only` is a
-separate successful envelope check and never returns `verified`.
+Exit codes: **0** verified; **1** rejected; **2** generated but unverified
+(`--generate-only`) or an incomplete internal replay. The participant command
+always attempts full replay unless `--generate-only` is requested.
 
 The complete baseline article package passes the production Python verifier
 with the exact fixed Certificate conclusion and frozen ROM/score literals.
@@ -78,7 +80,7 @@ The [verification record](../artifacts/baseline/verification.json) records exit 
 `status: verified`, the 950,344-byte ROM, Infinity score, and artifact hashes.
 Tests include
 strict-reader positive examples and a real-process negative test using a valid
-article proving an unrelated statement, including a full 904,616-byte literal
+article proving an unrelated statement, including a full 904,196-byte literal
 ROM. `test_replay.py` checks that this reaches the exact-conclusion rejection
 rather than failing during literal loading. An isolated author tracing build now
 exports CV computation requests and their proved equations; the unmodified
@@ -91,16 +93,25 @@ full-package run (PR25 v4) took 8,727 seconds and peaked at 90.54 GiB child RSS,
 using `--timeout 10800 --memory-gib 112`. Reduced Lean decoder/step agreement
 remains an independent, unproved semantic obligation.
 
+The source-only experiment has now also passed fresh full strict replay of its
+generated package: 9,415.6 seconds, exit 0, with the same ROM and Infinity score.
+The [source verification record](../artifacts/baseline/source-submission-verification.json)
+distinguishes the resumed build/export/replay stages from an uninterrupted CLI
+run and records exact source and tool hashes.
+
 ## Source submission pipeline
 
 Use the single participant command at the top of this document. The separate
 `verify_source.py` module is an implementation detail, not a second interface.
 The source envelope contains exactly `rom.bin`, `claim.json`, and `experiments/`
-with flat `.sml`/`.sig` proof-source files.
+with flat `.sml`/`.sig` proof-source files plus
+`original-allocation.term`. The term file is untrusted compiler input; HOL
+checks it as an allocation hint.
 
-The verifier freezes the source files, builds the candidate proof with one
-author-side HOL worker in Bubblewrap (read-only host filesystem, private PID
-and network namespaces, and resource limits), and generates the OpenTheory
+The verifier freezes the source files and allocation hint, builds the candidate
+proof with two author-side HOL workers in Bubblewrap (read-only toolchain and
+source inputs, hidden host home, isolated writable build workspace, private PID
+and network namespaces, cleared host environment, and resource limits), and generates the OpenTheory
 article locally. The verifier then invokes the strict article checker as an
 internal function, with the generated ROM and claim. Only a separate, fresh,
 operator-owned strict kernel replay can return `verified`; source execution,
@@ -113,7 +124,10 @@ challenge proposition.
 The source verifier requires the tested standard HOL tree, a distinct tracing
 author HOL tree prepared for export, CakeML at the pinned submodule revision,
 and Bubblewrap. It keeps generated sources, article, and replay evidence under
-the requested work directory.
+the requested work directory. Each author stage defaults to a four-hour timeout;
+the baseline export needs a larger limit, so the command above allows eight
+hours with `--source-timeout 28800`. Keep sufficient disk space free throughout
+export and replay: HOL's propositional prover also uses temporary files.
 
 The fixed `initProofLibrary` supplies generic compiler, target, semantics, and
 CV lemmas. Its local source dependencies are pinned in the trusted-file manifest.

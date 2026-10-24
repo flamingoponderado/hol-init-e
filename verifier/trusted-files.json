@@ -69,7 +69,7 @@
   "tools/bind_baseline.py": "215a2a4b4d2b38e91be83314ceb9923977a274507211a36569b010a30547256d",
   "tools/bind_baseline.sml": "e395947ba7adc5c5277efd7cc7996d4eed2396f43de723094ca5044b305fb0cc",
   "tools/build.py": "880d2d1f0b4b5e672275939bc13a664c03e90a0e3fa3c840976036c75d7edda4",
-  "tools/export_baseline.py": "925c0479f6f1e26605d907a3198ba21697461fcee07b2531c029abdab105c16b",
+  "tools/export_baseline.py": "08356d2ca940b84472620a65e97fd02b8d2b34a69aa55441afa9c18b95b2154c",
   "tools/import_ast.py": "0de641ca7ff42f54f2e64d928326d8b1c1a28efa3834d93df7332cda561a4506",
   "tools/prepare_verifier.py": "683fc519f806444b3909f46fa023c59a7900f8e207800ed2cd1bd1ec3110fab2",
   "tools/package_baseline.py": "0aec3eb51413ef258f05760de0c033f42bb8e7f0945d54d29f8dbe5b083dc004",
@@ -80,5 +80,5 @@
   "verifier/prepareHeap.sml": "19f21ff5c48838f436b92a1f6aa3c9bb991447baa28a602d72b3f530643bb039",
   "verifier/strictReplayLib.sml": "84e03a31f4bbe2a843f86855e09126c7403a8e4a5efb8e3ebb438d1604381d9b",
   "verifier/verify.py": "d528ea3579edeedc96032cc16bb0b99e58349e9209f1fee395b544b0abe9c3b0",
-  "verifier/verify_source.py": "39c40b58d33801348690e6a7576c12e4679b4b0c02acceacc75e30aecd2358cb"
+  "verifier/verify_source.py": "dd54994985ccdfc0827effb4997d657c4b664da3ec468642dc034fa8b5623077"
 }

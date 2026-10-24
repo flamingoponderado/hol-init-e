@@ -23,7 +23,7 @@ Definition arenaCheckRun_def:
       code := FEMPTY; eshapes := FEMPTY; memory := (\a. Word 0w);
       memaddrs := UNIV; sh_memaddrs := UNIV; clock := 100; be := F;
       base_addr := n2w sourceBase; top_addr := n2w heapEnd;
-      ffi := initial_ffi_state (terminalOracle (\n c b. NONE))
+      ffi := initial_ffi_state terminalOracle
         (arenaCheckHost length) |> in
     case evaluate_decls s arenaCheckDecls of
       NONE => NONE
@@ -38,7 +38,7 @@ Definition arenaCheckOversized_def:
         name = ExtCall «trap» /\ LENGTH conf = 8 /\
         result = FFI_failed /\
         st.ffi.ffi_state (n2w (outputStart + 33)) = SOME 8w /\
-        FLOOKUP st.globals «heap_ptr» = SOME (ValWord 2713714688w) /\
+        FLOOKUP st.globals «heap_ptr» = SOME (ValWord 2701131776w) /\
         coveredOutcome (FFI_outcome (Final_event name conf bytes result))
     | _ => F
 End
@@ -52,12 +52,12 @@ Definition arenaCheckInRange_def:
 End
 Theorem oversized_rejected_before_allocation:
   EVERY arenaCheckOversized
-    [134217713; 2 ** 35; 2 ** 64 - 8; 2 ** 64 - 1]
+    [1073741809; 2 ** 35; 2 ** 64 - 8; 2 ** 64 - 1]
 Proof
   EVAL_TAC
 QED
 Theorem in_range_reaches_payload:
-  EVERY arenaCheckInRange [1; 134217711; 134217712]
+  EVERY arenaCheckInRange [1; 1073741807; 1073741808]
 Proof
   EVAL_TAC
 QED

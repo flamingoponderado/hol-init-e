@@ -1,5 +1,22 @@
 # hol-init-e
 
+## Software guest alignment in progress
+
+This branch imports the software-precompile guest shared by current init-e and
+Rocq. Its only external calls are `halt` and `trap`; the former accelerator oracle
+has been removed. The reference ROM is 1,028,080 bytes, SHA256
+`44b6a6b828293a54cf2e8698a6a0af6a0d08b4ea825f6504547996c31969d04b`.
+Fresh HOL native compilation, the full Certificate, and independent verification
+are required for this revision. The accepted results below describe the previous
+guest and ROM.
+
+The fixed memory and host semantics follow init-e `184e96cdc`: a 1 GiB input
+arena, 4 KiB output window, software guest scratch placement, and host mapping
+limited to the framed input. Rocq `92a7233` has the same guest and ROM literals
+but retains older host/layout constants; the differences and exact pins are
+recorded in [the reference comparison](source/software-update-reference.json).
+Formal correspondence with the reduced Lean decoder and step remains open.
+
 ## Verified source-only submission
 
 The source bundle's generated Certificate passed fresh independent kernel

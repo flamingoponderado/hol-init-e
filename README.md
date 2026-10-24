@@ -1,5 +1,17 @@
 # hol-init-e
 
+## Verified source-only submission
+
+The source bundle's generated Certificate passed fresh independent kernel
+replay on 2026-10-25 (Europe/Berlin), with the same original 950,344-byte ROM
+and Infinity score. The participant bundle is 2,832,136 bytes across 146 files,
+or 655,407 bytes when zipped with DEFLATE level 9. The 2.80 GB OpenTheory
+article is generated locally by the operator.
+See the [source verification record](artifacts/baseline/source-submission-verification.json)
+for exact input hashes, limits, and staged build/export continuations. This
+experiment resumed the export and replay stages; it was not an uninterrupted
+public CLI run. Formal reduced Lean decoder/step agreement remains outstanding.
+
 ## Verified original ROM match
 
 The HOL baseline ROM now matches original init-e `b3831bc` and Rocq byte for
@@ -33,35 +45,45 @@ CakeML's Pancake compiler supplies one route to a baseline submission.
 The experiment replaces generated Lean computation certificates with HOL4
 `cv_compute` evaluations. The generated Lean proof tree is not imported.
 HOL has proved that the full top-level Pancake compilation returns the
-904,616-byte native RISC-V artifact. The fixed challenge evaluator also has a
+904,196-byte native RISC-V artifact. The fixed challenge evaluator also has a
 checked finite bootstrap execution to native entry, and the resulting ordinary
 memory agrees with the fixed source state.
 HOL now proves the full fixed challenge Certificate for the 950,344-byte
-bootstrapped baseline ROM with score Infinity. The complete article package is
-assembled and **accepted by the full Python verifier**, binding the proof to
-the frozen ROM and Infinity score. The [verification record](artifacts/baseline/verification.json)
+bootstrapped baseline ROM with score Infinity. The legacy complete article
+package was **accepted by the full Python verifier**, binding the proof to the
+frozen ROM and Infinity score. This is historical evidence, not a second
+submission route. The [verification record](artifacts/baseline/verification.json)
 contains the result and artifact hashes. Agreement with the pinned reduced Lean
 decoder and machine step remains unproved.
 
 ## Fixed challenge and untrusted submissions
 
 `challenge/`, `source/`, dependency pins, and `verifier/` belong to the challenge
-operator. Participants supply a separate submission directory; they cannot
-replace the challenge or certificate proposition. `experiments/` is baseline
-compiler development and grants no additional participant authority.
+operator. Participants supply a separate source-submission directory; they
+cannot replace the challenge or certificate proposition. Its proof scripts
+run only in a sandboxed author environment and acceptance still requires strict
+kernel replay. The repository's `experiments/` directory is operator
+development material; participants provide their own `experiments/` directory
+in the source envelope.
 
 ```sh
-python3 verifier/verify.py --local /path/to/submission --hol /path/to/HOL --progress
+python3 verifier/verify.py /path/to/source-submission \
+  --hol /path/to/HOL --author-hol /path/to/tracing-HOL \
+  --source-timeout 28800
 python3 verifier/test_verify.py
 ```
 
-The verifier checks trusted-file hashes and the CakeML pin before inspecting
-candidate files. It never executes candidate ML. `--local` runs full verification,
-preparing a missing or stale operator heap as needed. Acceptance requires a
-closed proof of the exact fixed
-`initChallenge.Certificate submittedBytes submittedScore`. The legacy positional
-interface performs preflight only (exit 2) unless `--replay` is supplied. See
-[the verifier boundary](verifier/README.md) and [submission format](submission/README.md).
+The participant-facing verifier checks trusted-file hashes and the CakeML pin,
+freezes source inputs, runs source only in a sandboxed author HOL, and requires
+fresh strict kernel replay of the exact fixed
+`initChallenge.Certificate submittedBytes submittedScore`. There is one
+participant submission format: the source envelope described in
+[submission/README.md](submission/README.md). See
+[the verifier boundary](verifier/README.md).
+
+The OpenTheory article is an internal generated artifact and is not accepted as
+a participant submission. The legacy article package's successful replay is
+historical evidence for the same ROM and claim, not a second submission path.
 
 ## Included
 
@@ -151,7 +173,8 @@ The compiler correctness theorem is connected to this fixed evaluator.
 ```sh
 python3 tools/build.py --hol /path/to/HOL initBaselineCertificateTheory
 python3 tools/prepare_verifier.py --hol /path/to/HOL
-python3 verifier/verify.py --local /path/to/submission --hol /path/to/HOL \
+python3 verifier/verify.py /path/to/source-submission --hol /path/to/HOL \
+  --author-hol /path/to/tracing-HOL \
   --timeout 10800 --memory-gib 112 --progress
 ```
 

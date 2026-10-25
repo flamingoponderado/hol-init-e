@@ -42,6 +42,17 @@ Definition arenaCheckOversized_def:
         coveredOutcome (FFI_outcome (Final_event name conf bytes result))
     | _ => F
 End
+Definition arenaCheckHeapLimited_def:
+  arenaCheckHeapLimited length =
+    case arenaCheckRun length of
+      SOME (SOME (FinalFFI (Final_event name conf bytes result)), st) =>
+        name = ExtCall «trap» /\ LENGTH conf = 1 /\
+        result = FFI_failed /\
+        st.ffi.ffi_state (n2w (outputStart + 33)) = SOME 1w /\
+        FLOOKUP st.globals «heap_ptr» = SOME (ValWord 2701131776w) /\
+        ~coveredOutcome (FFI_outcome (Final_event name conf bytes result))
+    | _ => F
+End
 Definition arenaCheckInRange_def:
   arenaCheckInRange length =
     case arenaCheckRun length of
@@ -57,7 +68,15 @@ Proof
   EVAL_TAC
 QED
 Theorem in_range_reaches_payload:
-  EVERY arenaCheckInRange [1; 1073741807; 1073741808]
+  EVERY arenaCheckInRange [1; 251658231; 251658232]
+Proof
+  EVAL_TAC
+QED
+
+(* The arena is larger than the guest heap. input_blob allocates len+8;
+   arena-valid lengths above 0x0f000000-8 fail with the existing resource trap. *)
+Theorem arena_valid_but_heap_limited:
+  EVERY arenaCheckHeapLimited [251658233; 1073741807; 1073741808]
 Proof
   EVAL_TAC
 QED

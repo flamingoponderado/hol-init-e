@@ -20,9 +20,8 @@ Definition sharedDomain_def:
 End
 Definition sourceMemory_def:
   sourceMemory (address : word64) =
-    let offset = w2n (address - n2w sourceBase) in
-      Word (if offset MOD 8 = 0 /\ offset DIV 8 < LENGTH startupHeaders
-            then EL (offset DIV 8) startupHeaders else 0w)
+    Word (if sourceBase <= w2n address /\ w2n address < sourceBase + 40
+          then EL ((w2n address - sourceBase) DIV 8) startupHeaders else 0w)
 End
 Definition sourceFfiFor_def:
   sourceFfiFor input =
@@ -44,6 +43,7 @@ End
 
 Theorem startup_memory:
   sourceMemory (n2w sourceBase) = Word 0xa0020018w /\
+  sourceMemory (n2w (sourceBase + 1)) = Word 0xa0020018w /\
   sourceMemory (n2w (sourceBase + 32)) = Word 0x800f1000w /\
   sourceMemory (n2w (sourceBase + 40)) = Word 0w
 Proof

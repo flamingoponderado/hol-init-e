@@ -6,9 +6,11 @@ This branch imports the software-precompile guest shared by current init-e and
 Rocq. Its only external calls are `halt` and `trap`; the former accelerator oracle
 has been removed. The reference ROM is 1,028,080 bytes, SHA256
 `44b6a6b828293a54cf2e8698a6a0af6a0d08b4ea825f6504547996c31969d04b`.
-Fresh HOL native compilation, the full Certificate, and independent verification
-are required for this revision. The accepted results below describe the previous
-guest and ROM.
+Fresh HOL top-level compilation and ROM construction reproduce those bytes
+exactly, including all 4,603 bitmap words. The guest input-bound regressions also
+pass; see [the coherent artifact checks](artifacts/software-guest/coherent-artifact-check.json).
+The full Certificate and independent verification are still required for this
+revision. The accepted verifier results below describe the previous guest and ROM.
 
 The fixed memory and host semantics follow init-e `184e96cdc`: a 1 GiB input
 arena, 4 KiB output window, software guest scratch placement, and host mapping
@@ -17,7 +19,7 @@ but retains older host/layout constants; the differences and exact pins are
 recorded in [the reference comparison](source/software-update-reference.json).
 Formal correspondence with the reduced Lean decoder and step remains open.
 
-## Verified source-only submission
+## Historical verified source-only submission
 
 The source bundle's generated Certificate passed fresh independent kernel
 replay on 2026-10-25 (Europe/Berlin), with the same original 950,344-byte ROM
@@ -29,7 +31,7 @@ for exact input hashes, limits, and staged build/export continuations. This
 experiment resumed the export and replay stages; it was not an uninterrupted
 public CLI run. Formal reduced Lean decoder/step agreement remains outstanding.
 
-## Verified original ROM match
+## Historical verified original ROM match
 
 The HOL baseline ROM now matches original init-e `b3831bc` and Rocq byte for
 byte: 950,344 bytes, SHA256
@@ -42,7 +44,7 @@ Formal agreement with the reduced Lean decoder and step remains outstanding.
 See [accepted verifier evidence](artifacts/baseline/verification.json) and
 [byte comparison](artifacts/baseline/original-byte-comparison.json).
 
-## Verified guest input-bound update
+## Historical verified guest input-bound update
 
 The guest guard from init-e PR #25 (commit `afa0071e8`) is imported.
 Native code has been rebuilt (904,196 bytes, 4,614 bitmap words); HOL boundary
@@ -61,11 +63,11 @@ CakeML's Pancake compiler supplies one route to a baseline submission.
 
 The experiment replaces generated Lean computation certificates with HOL4
 `cv_compute` evaluations. The generated Lean proof tree is not imported.
-HOL has proved that the full top-level Pancake compilation returns the
-904,196-byte native RISC-V artifact. The fixed challenge evaluator also has a
+For the previous guest, HOL proved that the full top-level Pancake compilation
+returns the 904,196-byte native RISC-V artifact. The fixed challenge evaluator also has a
 checked finite bootstrap execution to native entry, and the resulting ordinary
 memory agrees with the fixed source state.
-HOL now proves the full fixed challenge Certificate for the 950,344-byte
+That revision proved the full fixed challenge Certificate for the 950,344-byte
 bootstrapped baseline ROM with score Infinity. The legacy complete article
 package was **accepted by the full Python verifier**, binding the proof to the
 frozen ROM and Infinity score. This is historical evidence, not a second
@@ -107,14 +109,14 @@ historical evidence for the same ROM and claim, not a second submission path.
 - CakeML as a pinned `cakeml/` submodule. The separate sibling checkout is
   independent and is not a build dependency.
 - The complete literal guest AST, translated to `64 panLang$decl list` from
-  init-e's authoritative `Guest/Ast.lean`, plus the readable preprocessed source.
+  init-e's authoritative `Guest/SoftwareAst.lean`, plus the readable preprocessed source.
 - The finite/infinite score model and memory-layout constants and proofs.
   Infinity still requires a finite terminating execution for every covered input.
 - A restricted instruction decoder and machine step. Unsupported fetched
   encodings become `UnknownInstruction`; compressed decoding always does so.
   There is no blanket requirement that every byte in a submitted ROM be code.
 - The declared gas-limit reader and covered-outcome/output comparison rules.
-- Fixed source state, machine startup, framing, shared memory, accelerator
+- Fixed source state, machine startup, framing, shared memory, terminal external-call
   oracle, submission admission, and challenge certificate definitions.
 - Frozen submission snapshots, regenerated ROM/score literals, and a strict
   proof-replay component with tampering tests.
@@ -156,7 +158,7 @@ Use the same HOL checkout for successive builds of that directory.
 To reproduce the AST from the pinned init-e checkout:
 
 ```sh
-python3 tools/import_ast.py /path/to/init-e/Guest/Ast.lean --check
+python3 tools/import_ast.py /path/to/init-e/Guest/SoftwareAst.lean --check
 ```
 
 The importer checks the entire input hash and rejects unknown syntax and
@@ -207,8 +209,8 @@ under ignored `.build/`. These are native compiler artifacts, not an admitted
 challenge ROM. Large evaluated theories require substantial memory and time
 to export. Use the tested HOL pin in `provenance.json` for verifier preparation.
 
-The fixed challenge and accelerator regression theories build successfully.
-Six AST importer tests and thirty-one verifier boundary tests pass. Strict replay component
+For the historical accepted revision, the fixed challenge and regression theories
+built successfully. Its six AST importer tests and thirty-one verifier boundary tests passed. Strict replay component
 tests cover valid proofs and forged axioms; the real verifier rejects a valid
 article whose conclusion is merely `T`. The full baseline package also passes
 the production Python verifier.

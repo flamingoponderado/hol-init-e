@@ -53,5 +53,6 @@
     "sha256": "95a6356698af513a69c56ef6ce221101ff4374812b527ffa5c427861bb5465b7",
     "origin": "Untrusted extracted reference compiler/allocator with the pinned software AST; the native and bitmap proposal bytes match the common reference. Hints are reordered by explicit source function IDs. HOL validation is required.",
     "legacy_reference_note": "Current init-e still contains unused 826-entry AllocationOracles literals for the previous 825-function guest. These were rejected by HOL for the current 813-function guest and are not used."
-  }
+  },
+  "source_memory_alignment": "The total startup memory function follows init-e literally, including unaligned addresses within the 40-byte header range. The compiler memory relation is still restricted to ordinaryDomain."
 }

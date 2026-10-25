@@ -47,5 +47,11 @@
   "accelerator_model": "Removed from the fixed HOL source oracle; all external calls are terminal failures as in init-e sourceOracle.",
   "flapjack_revision_unchanged": "034bb5a1ed0b757082768d5406206bd2f8e31b7c",
   "formal_lean_decoder_step_correspondence": "outstanding",
-  "scope": "Pinned input and reference comparison; HOL compilation and independent verification are separate checks."
+  "scope": "Pinned input and reference comparison; HOL compilation and independent verification are separate checks.",
+  "allocation_proposal": {
+    "entries": 814,
+    "sha256": "95a6356698af513a69c56ef6ce221101ff4374812b527ffa5c427861bb5465b7",
+    "origin": "Untrusted extracted reference compiler/allocator with the pinned software AST; the native and bitmap proposal bytes match the common reference. Hints are reordered by explicit source function IDs. HOL validation is required.",
+    "legacy_reference_note": "Current init-e still contains unused 826-entry AllocationOracles literals for the previous 825-function guest. These were rejected by HOL for the current 813-function guest and are not used."
+  }
 }

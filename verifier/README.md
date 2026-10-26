@@ -5,7 +5,8 @@ Run from an operator-controlled checkout of the fixed challenge:
 ```sh
 python3 verifier/verify.py /path/to/source-submission \
   --hol /path/to/tested/HOL --author-hol /path/to/tracing/HOL \
-  --work /path/to/new-work-directory --source-timeout 28800
+  --work /path/to/new-work-directory --source-timeout 28800 \
+  --source-memory-gib 64 --timeout 21600 --memory-gib 112
 python3 verifier/test_verify.py
 python3 verifier/test_replay.py
 ```
@@ -74,30 +75,21 @@ Exit codes: **0** verified; **1** rejected; **2** generated but unverified
 (`--generate-only`) or an incomplete internal replay. The participant command
 always attempts full replay unless `--generate-only` is requested.
 
-The complete baseline article package passes the production Python verifier
-with the exact fixed Certificate conclusion and frozen ROM/score literals.
-The [verification record](../artifacts/baseline/verification.json) records exit 0,
-`status: verified`, the 950,344-byte ROM, Infinity score, and artifact hashes.
-Tests include
-strict-reader positive examples and a real-process negative test using a valid
-article proving an unrelated statement, including a full 904,196-byte literal
-ROM. `test_replay.py` checks that this reaches the exact-conclusion rejection
-rather than failing during literal loading. An isolated author tracing build now
-exports CV computation requests and their proved equations; the unmodified
-standard verifier kernel recomputes those requests. For the prior guest, the exact first nine compiler articles selected for its package independently
-replay 13,399 exported theorems in one fresh standard-kernel process, using only
-the fixed library and preceding proof data. This includes full native bytecode
-compilation. The measured run took 679.5 seconds and peaked at 52.7 GiB RSS,
-so the baseline requires explicit limits above the defaults. The successful
-full-package run (PR25 v4) took 8,727 seconds and peaked at 90.54 GiB child RSS,
-using `--timeout 10800 --memory-gib 112`. Reduced Lean decoder/step agreement
-remains an independent, unproved semantic obligation.
+The current software guest passed the complete public source-only CLI on
+2026-10-26. The fresh generated article contains 4,446,682,307 bytes and proves
+the exact Certificate for the 1,028,080-byte ROM and Infinity score. Strict
+replay returned 0 without a signal or timeout and wrote exactly `VERIFIED\n`.
+It took 13,127.7 seconds; the public run's maximum RSS was 94,629,628 KiB
+(about 90.25 GiB). The accepted command used `--timeout 21600 --memory-gib 112`,
+with the fixed 84 GiB replay heap. Exact source, ROM, proof, trust-manifest,
+operator-heap hashes, gate results, and process evidence are in the
+[verification record](../artifacts/software-guest/verification.json).
 
-The source-only experiment has now also passed fresh full strict replay of its
-generated package: 9,415.6 seconds, exit 0, with the same ROM and Infinity score.
-The [source verification record](../artifacts/baseline/source-submission-verification.json)
-distinguishes the resumed build/export/replay stages from an uninterrupted CLI
-run and records exact source and tool hashes.
+The boundary, source-envelope, exporter, isolation, article-only CLI rejection,
+and unrelated-kernel-conclusion checks passed before this fresh public run.
+Historical article and staged source-only verification records remain under
+`artifacts/baseline/`; they refer to the previous guest and ROM. Formal reduced
+Lean decoder/step agreement remains an independent, unproved obligation.
 
 ## Source submission pipeline
 
@@ -144,7 +136,7 @@ conclusion. The article replay parser is not exposed as a participant command.
 verifier never regenerates it for a participant. Re-run operator heap preparation
 after changing fixed challenge or verifier files.
 
-The generated article is bounded to 3 GiB and receives strict replay resource
+The generated article is bounded to 8 GiB and receives strict replay resource
 limits. Historical full-article replay evidence used `--timeout 10800
 --memory-gib 112`; the source command exposes replay limits and separate
 author-side limits.
@@ -164,7 +156,10 @@ python3 tools/package_baseline.py --output /path/to/new-submission
 
 `--only THEORY` exports one dependency; `--start-at THEORY` resumes a suffix of
 the dependency order. `--stop-before THEORY` bounds a suffix for separate
-export batches. Workers default to a 24 GiB Poly/ML heap limit and one GC thread;
+export batches. The public source verifier gives each author process a 48 GiB
+address-space limit. Build and bind workers use a 24 GiB Poly/ML heap; the
+sequential article exporter uses a 40 GiB heap because the fixed bootstrap
+suffix proof exceeds the smaller store. All workers use one GC thread.
 `--maxheap-mib` and `--gc-threads` adjust these author resource settings.
 The author patch records proofs, supports CV computation
 requests, and emits dictionary cleanup. Exported baseline constants are renamed
@@ -190,7 +185,7 @@ checks reject changed bytes, forged literal
 definitions, false results, missing or forged equations, unrelated conclusions, and attempts
 to replace fixed constants. The full baseline package has passed production
 verification; its result, resource use, and hashes are recorded in
-[verification.json](../artifacts/baseline/verification.json).
+[verification.json](../artifacts/software-guest/verification.json).
 
 
 ### Parallel article diagnostics

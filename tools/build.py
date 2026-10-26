@@ -19,7 +19,7 @@ p.add_argument('targets', nargs='*', default=['initParamsTheory.uo', 'initGuestT
                                          'initGasTheory.uo', 'initObservationsTheory.uo',
                                          'initHostTheory.uo', 'initSourceTheory.uo',
                                          'initStructsTheory.uo', 'initGlobalsTheory.uo',
-                                         'initChallengeTheory.uo', 'initAccelChecksTheory.uo',
+                                         'initChallengeTheory.uo',
                                          'replayChecksTheory.uo', 'certificateReplayLib.uo'])
 a = p.parse_args()
 if a.jobs < 1 or a.jobs > 3 or a.maxheap_mib < 1:

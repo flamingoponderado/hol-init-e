@@ -24,7 +24,8 @@ From the operator's pinned checkout, run:
 ```sh
 python3 verifier/verify.py /path/to/source-submission \
   --hol /path/to/tested/HOL --author-hol /path/to/tracing/HOL \
-  --work /path/to/new-work-directory --source-timeout 28800
+  --work /path/to/new-work-directory --source-timeout 28800 \
+  --source-memory-gib 64 --timeout 21600 --memory-gib 112
 ```
 
 The source is frozen, then run in an isolated author-side tracing HOL process.
@@ -40,11 +41,12 @@ an admitted existential witness in the proof, not a replacement challenge
 configuration. The source protocol currently targets the baseline
 `initBaselineCertificate` theory tree.
 
-The current baseline source bundle is about 2.83 MB uncompressed (ROM, 143 HOL
-source files, and the allocation hint), or 655,407 bytes as a level-9 DEFLATE
-ZIP archive. Extract an archive before invoking the verifier; direct ZIP input
-is not supported. The generated article is 2.80 GB and stays operator-side.
-The [source verification record](../artifacts/baseline/source-submission-verification.json)
-records successful independent replay after staged export/replay continuations. Reduced
-Lean decoder and machine-step agreement remains a separate unproved
-obligation; see [verifier documentation](../verifier/README.md).
+The current verified baseline source bundle contains 145 files totaling
+3,045,749 bytes (the 1,028,080-byte ROM, claim, proof sources, and allocation
+hint), or 693,478 bytes as a level-9 DEFLATE ZIP. Extract an archive before
+invoking the verifier; direct ZIP input is not supported. The generated article
+is 4,446,682,307 bytes and stays operator-side, subject to an 8 GiB size cap.
+The [verification record](../artifacts/software-guest/verification.json)
+records successful independent replay from an uninterrupted fresh public CLI
+run on 2026-10-26. Reduced Lean decoder and machine-step agreement remains a
+separate unproved obligation; see [verifier documentation](../verifier/README.md).

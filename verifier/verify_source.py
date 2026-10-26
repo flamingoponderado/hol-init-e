@@ -179,7 +179,7 @@ def main():
     parser.add_argument('--work', type=Path,
                         help='new directory for author outputs and strict replay evidence')
     parser.add_argument('--source-timeout', type=int, default=14400)
-    parser.add_argument('--source-memory-gib', type=int, default=32,
+    parser.add_argument('--source-memory-gib', type=int, default=48,
                         help='per-process author-side address-space limit')
     parser.add_argument('--timeout', type=int, default=10800,
                         help='strict kernel replay time limit')
@@ -221,7 +221,7 @@ def main():
             ('export', [sys.executable, ROOT/'tools/export_baseline.py', '--hol', standard,
                         '--author-hol', author, '--build-dir', build,
                         '--experiments-dir', source/'experiments', '--output', exports,
-                        '--maxheap-mib', '24576']),
+                        '--maxheap-mib', '40960']),
             ('bind', [sys.executable, ROOT/'tools/bind_baseline.py', '--hol', standard,
                       '--author-hol', author, '--build-dir', build,
                       '--experiments-dir', source/'experiments', '--rom', source/'rom.bin',

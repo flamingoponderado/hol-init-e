@@ -1,16 +1,23 @@
 # hol-init-e
 
-## Software guest alignment in progress
+## Verified software guest
 
-This branch imports the software-precompile guest shared by current init-e and
-Rocq. Its only external calls are `halt` and `trap`; the former accelerator oracle
-has been removed. The reference ROM is 1,028,080 bytes, SHA256
-`44b6a6b828293a54cf2e8698a6a0af6a0d08b4ea825f6504547996c31969d04b`.
-Fresh HOL top-level compilation and ROM construction reproduce those bytes
-exactly, including all 4,603 bitmap words. The guest input-bound regressions also
-pass; see [the coherent artifact checks](artifacts/software-guest/coherent-artifact-check.json).
-The full Certificate and independent verification are still required for this
-revision. The accepted verifier results below describe the previous guest and ROM.
+The software-precompile guest shared by pinned init-e and Rocq passed the full
+public source-only verifier on **2026-10-26**, with score Infinity. Its only
+external calls are `halt` and `trap`; EVM precompiles execute in guest software.
+The fresh HOL compiler output and full ROM match both pinned references byte
+for byte: 979,140 native bytes, 4,603 bitmap words, and a 1,028,080-byte ROM,
+SHA256 `44b6a6b828293a54cf2e8698a6a0af6a0d08b4ea825f6504547996c31969d04b`.
+See [the accepted verification record](artifacts/software-guest/verification.json)
+and [current artifacts](artifacts/software-guest/README.md).
+
+The participant envelope contains 145 files totaling 3,045,749 bytes, or
+693,478 bytes as a level-9 DEFLATE ZIP. The operator generates the 4,446,682,307-byte
+OpenTheory article locally. A fresh uninterrupted public CLI run built,
+exported, bound, and independently replayed it. Strict replay returned 0 without
+a signal or timeout and wrote the exact `VERIFIED\n` completion marker. The
+whole-ROM CV translation is retained; the generated-article limit is 8 GiB.
+Tag `r20261026-verifier-passed` identifies the verified release commit.
 
 The fixed memory and host semantics follow init-e `184e96cdc`: a 1 GiB input
 arena, 4 KiB output window, software guest scratch placement, and host mapping
@@ -88,7 +95,8 @@ in the source envelope.
 ```sh
 python3 verifier/verify.py /path/to/source-submission \
   --hol /path/to/HOL --author-hol /path/to/tracing-HOL \
-  --source-timeout 28800
+  --source-timeout 28800 --source-memory-gib 64 \
+  --timeout 21600 --memory-gib 112
 python3 verifier/test_verify.py
 ```
 
@@ -137,10 +145,17 @@ The successful full verification used:
 - **Poly/ML:** `5.9.2 Release`, configured executable `/usr/bin/poly`, reporting
   Git version `v5.9.2-311-gd615dad7`.
 
+The public source exporter defaults to a 48 GiB per-process address-space limit;
+the accepted software-guest run used an explicit 64 GiB limit. It uses a
+40 GiB Poly/ML heap for its sequential article export. Build and binding
+workers retain 24 GiB heaps. The smaller export heap exhausted its store while
+recording `initBootstrapChallengeSuffixSteps`; the raised bound accommodates
+that fixed proof under the public CLI.
+
 The separate `HOL` field in `provenance.json` records the imported source's
 upstream provenance, not the HOL checkout used for verification. Earlier native
 artifact manifests retain their original build revisions. The full verification
-record is [artifacts/baseline/verification.json](artifacts/baseline/verification.json).
+record is [artifacts/software-guest/verification.json](artifacts/software-guest/verification.json).
 
 
 ```sh
@@ -194,13 +209,15 @@ python3 tools/build.py --hol /path/to/HOL initBaselineCertificateTheory
 python3 tools/prepare_verifier.py --hol /path/to/HOL
 python3 verifier/verify.py /path/to/source-submission --hol /path/to/HOL \
   --author-hol /path/to/tracing-HOL \
-  --timeout 10800 --memory-gib 112 --progress
+  --source-timeout 28800 --source-memory-gib 64 \
+  --timeout 21600 --memory-gib 112
 ```
 
 The successful original-ROM-match verification used a 21,600-second timeout,
 112 GiB address-space limit, and 84 GiB Poly/ML heap. It took 8,973 seconds
-(about 2 hours 30 minutes) and peaked at about 90.4 GiB child RSS. The 3 GiB
-article cap accommodates the 2.80 GB replayable certificate. The 600-second/32 GiB defaults are below
+(about 2 hours 30 minutes) and peaked at about 90.4 GiB child RSS. The current
+8 GiB article cap accommodates the source-only software guest certificate,
+including its checked whole-ROM CV translation. The 600-second/32 GiB defaults are below
 the measured requirements of this baseline proof.
 
 [Checked native artifacts](artifacts/README.md) are included in `artifacts/`.
